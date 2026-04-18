@@ -1,0 +1,116 @@
+{
+  "scheme_id": "pm_kisan",
+  "scheme_name": "PM Kisan Samman Nidhi",
+  "ministry": "Ministry of Agriculture & Farmers' Welfare",
+  "benefit": "₹6000/year paid in 3 installments of ₹2000 directly to bank account",
+  "application_portal": "pmkisan.gov.in",
+  "source_urls": [
+    "https://pmkisan.gov.in/Documents/RevisedPM-KISANOperationalGuidelines.pdf"
+  ],
+  "last_verified": "2026-04-11",
+  "source_confidence": 0.90,
+  "notes": "Guidelines revised multiple times since Feb 2019 launch. Exclusion list is exhaustive and explicit in the official operational guidelines.",
+
+  "eligibility_rules": {
+    "operator": "AND",
+    "conditions": [
+      {
+        "rule_id": "pmk_r1",
+        "description": "Must be a farmer/cultivator family owning cultivable land",
+        "operator": "AND",
+        "conditions": [
+          {
+            "rule_id": "pmk_r1a",
+            "field": "occupation",
+            "operator": "IN",
+            "value": ["farmer", "cultivator", "agricultural_landowner"],
+            "confidence": 0.95,
+            "source": "PM-KISAN Operational Guidelines 2019, Section 2.1 — 'farmer families having cultivable land'"
+          },
+          {
+            "rule_id": "pmk_r1b",
+            "field": "land_ownership",
+            "operator": "EQ",
+            "value": true,
+            "confidence": 0.80,
+            "source": "PM-KISAN Operational Guidelines 2019 — 'land holding in their names'",
+            "ambiguity_flag": "AMBIGUITY-003",
+            "ambiguity_note": "Leased/sharecrop land not explicitly excluded but 'in their names' implies formal ownership. Field offices apply this inconsistently."
+          }
+        ]
+      },
+      {
+        "rule_id": "pmk_r2",
+        "description": "Must NOT fall under any exclusion category",
+        "operator": "NOT",
+        "conditions": [
+          {
+            "operator": "OR",
+            "conditions": [
+              {
+                "rule_id": "pmk_excl_1",
+                "field": "is_income_tax_payer",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.90,
+                "source": "Exclusion criterion (i) — 'All Institutional Land holders'",
+                "ambiguity_flag": "AMBIGUITY-011",
+                "ambiguity_note": "Household-level or individual-level? If a son files ITR but the farmer does not, the farmer's status is contested."
+              },
+              {
+                "rule_id": "pmk_excl_2",
+                "field": "is_institutional_land_holder",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.95,
+                "source": "Exclusion criterion (ii) — institutional land holders (trusts, societies, etc.)"
+              },
+              {
+                "rule_id": "pmk_excl_3",
+                "field": "is_constitutional_post_holder",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.95,
+                "source": "Exclusion criterion (iii) — former/current holders of constitutional posts (President, VP, CM, etc.)"
+              },
+              {
+                "rule_id": "pmk_excl_4",
+                "field": "is_current_former_government_employee",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.90,
+                "source": "Exclusion criterion (iv) — serving/retired officers of Central/State Govt, PSUs",
+                "ambiguity_note": "Multi-member household where only one member is/was a govt employee — entire family excluded"
+              },
+              {
+                "rule_id": "pmk_excl_5",
+                "field": "is_pension_recipient_above_10k",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.85,
+                "source": "Exclusion criterion (v) — retired pensioners with monthly pension ≥ ₹10,000"
+              },
+              {
+                "rule_id": "pmk_excl_6",
+                "field": "is_doctor_lawyer_engineer_ca",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.85,
+                "source": "Exclusion criterion (vi) — professionals (doctors, engineers, lawyers, CAs, architects)"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+
+  "required_documents": [
+    {"document": "Aadhaar Card", "mandatory": true, "priority": 1, "obtainable_from": "Nearest Aadhaar Enrollment Centre"},
+    {"document": "Land Records / Khasra-Khatauni / Patta", "mandatory": true, "priority": 2, "obtainable_from": "Tehsildar / Revenue Department"},
+    {"document": "Bank Account (linked to Aadhaar)", "mandatory": true, "priority": 3, "obtainable_from": "Any scheduled bank / PMJDY"}
+  ],
+
+  "prerequisites": ["pm_jan_dhan"],
+  "ambiguity_flags": ["AMBIGUITY-003", "AMBIGUITY-011", "AMBIGUITY-001"]
+}

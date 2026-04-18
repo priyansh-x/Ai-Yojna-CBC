@@ -1,0 +1,48 @@
+{
+  "scheme_id": "pmgkay",
+  "scheme_name": "Pradhan Mantri Garib Kalyan Anna Yojana (PMGKAY) / NFSA",
+  "ministry": "Ministry of Consumer Affairs, Food & Public Distribution",
+  "benefit": "5 kg of free foodgrain (rice/wheat) per person per month under NFSA from Jan 2023 (PMGKAY merged with NFSA). AAY households get 35 kg/month free.",
+  "application_portal": "nfsa.gov.in / State FCI portals",
+  "source_urls": [
+    "https://nfsa.gov.in",
+    "https://dfpd.gov.in/nfsa-act.htm"
+  ],
+  "last_verified": "2026-04-11",
+  "source_confidence": 0.90,
+  "notes": "PMGKAY was initially a COVID relief scheme, later merged into NFSA from Jan 2023. Eligibility = NFSA eligibility = holding a PHH or AAY ration card. The actual beneficiary selection is done by state governments.",
+
+  "eligibility_rules": {
+    "operator": "OR",
+    "conditions": [
+      {
+        "rule_id": "pmgkay_r1",
+        "description": "Priority Household (PHH) ration card holder",
+        "field": "ration_card_type",
+        "operator": "EQ",
+        "value": "PHH",
+        "confidence": 0.95,
+        "source": "NFSA 2013 — Priority Household card entitlement: 5 kg/person/month"
+      },
+      {
+        "rule_id": "pmgkay_r2",
+        "description": "Antyodaya Anna Yojana (AAY) card holder — poorest of the poor",
+        "field": "ration_card_type",
+        "operator": "EQ",
+        "value": "AAY",
+        "confidence": 0.95,
+        "source": "NFSA 2013 — AAY entitlement: 35 kg/household/month"
+      }
+    ]
+  },
+
+  "note_on_new_ration_card": "New ration card applicants must apply through state government. State determines PHH/AAY status based on socio-economic criteria. Central government sets coverage quotas per state (NFSA coverage = 75% rural, 50% urban).",
+
+  "required_documents": [
+    {"document": "Ration Card (PHH or AAY)", "mandatory": true, "priority": 1, "obtainable_from": "Food Department / Fair Price Shop"},
+    {"document": "Aadhaar (for biometric authentication at PDS)", "mandatory": true, "priority": 2, "obtainable_from": "Aadhaar Enrollment Centre"}
+  ],
+
+  "prerequisites": [],
+  "ambiguity_flags": []
+}

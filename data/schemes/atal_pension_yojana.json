@@ -1,0 +1,99 @@
+{
+  "scheme_id": "atal_pension_yojana",
+  "scheme_name": "Atal Pension Yojana (APY)",
+  "ministry": "Ministry of Finance / PFRDA",
+  "benefit": "Guaranteed minimum pension of ₹1,000–₹5,000/month after age 60, depending on contribution and age at enrollment. Spouse and nominee benefits on death.",
+  "application_portal": "npscra.nsdl.co.in / bank branches",
+  "source_urls": [
+    "https://www.npscra.nsdl.co.in/scheme-details.php",
+    "https://financialservices.gov.in/pension-reforms/atal-pension-yojana"
+  ],
+  "last_verified": "2026-04-11",
+  "source_confidence": 0.92,
+  "notes": "From Oct 2022, income tax payers excluded from new APY enrollment. This changed the target demographic significantly. APY and PM-SYM can both be held simultaneously — they are NOT mutually exclusive.",
+
+  "eligibility_rules": {
+    "operator": "AND",
+    "conditions": [
+      {
+        "rule_id": "apy_r1",
+        "field": "age",
+        "operator": "BETWEEN",
+        "value": [18, 40],
+        "confidence": 0.98,
+        "source": "APY Guidelines — entry age 18–40 years"
+      },
+      {
+        "rule_id": "apy_r2",
+        "field": "has_bank_account",
+        "operator": "EQ",
+        "value": true,
+        "confidence": 0.98,
+        "source": "APY Guidelines — savings bank account mandatory"
+      },
+      {
+        "rule_id": "apy_r3",
+        "description": "Must NOT be covered under any statutory social security scheme",
+        "operator": "NOT",
+        "conditions": [
+          {
+            "operator": "OR",
+            "conditions": [
+              {
+                "rule_id": "apy_excl_1",
+                "field": "is_nps_subscriber",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.90,
+                "source": "APY Guidelines — existing NPS subscribers not eligible",
+                "ambiguity_note": "This means organised-sector govt employees with mandatory NPS cannot also enroll in APY"
+              },
+              {
+                "rule_id": "apy_excl_1b",
+                "field": "is_epfo_member",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.88,
+                "source": "APY Guidelines — APY targets workers 'not covered under any statutory social security scheme'; EPFO is statutory"
+              },
+              {
+                "rule_id": "apy_excl_1c",
+                "field": "is_esic_member",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.85,
+                "source": "APY Guidelines — ESIC is a statutory social security scheme; ESIC members in organised sector excluded",
+                "ambiguity_flag": "AMBIGUITY-012",
+                "ambiguity_note": "Gig workers not formally ESIC-enrolled may still qualify — check ESIC coverage status"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rule_id": "apy_r4",
+        "description": "Must NOT be an income tax payer (post Oct 2022 rule change)",
+        "operator": "NOT",
+        "conditions": [
+          {
+            "rule_id": "apy_excl_2",
+            "field": "is_income_tax_payer",
+            "operator": "EQ",
+            "value": true,
+            "confidence": 0.90,
+            "source": "GOI circular Oct 2022 — income tax payers excluded from new APY enrollments from 1 Oct 2022",
+            "ambiguity_note": "Only new enrollments blocked — existing enrollees who subsequently become ITR filers not retroactively removed"
+          }
+        ]
+      }
+    ]
+  },
+
+  "required_documents": [
+    {"document": "Savings Bank Account", "mandatory": true, "priority": 1, "obtainable_from": "Any scheduled bank"},
+    {"document": "Aadhaar Card / Mobile Number (for KYC)", "mandatory": true, "priority": 2, "obtainable_from": "Aadhaar Enrollment Centre"}
+  ],
+
+  "prerequisites": ["pm_jan_dhan"],
+  "ambiguity_flags": ["AMBIGUITY-007"]
+}

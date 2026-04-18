@@ -1,0 +1,252 @@
+{
+  "version": "1.0",
+  "generated_date": "2026-04-11",
+  "total_ambiguities": 17,
+  "note": "This is a first-class deliverable. Every entry represents a place where the engine CANNOT give a confident answer and must surface uncertainty to the user.",
+
+  "ambiguities": [
+
+    {
+      "id": "AMBIGUITY-001",
+      "type": "definitional",
+      "severity": "HIGH",
+      "title": "Agricultural labourer vs farmer — sharecropper boundary",
+      "schemes_affected": ["pm_kisan", "mgnrega", "pm_fasal_bima", "pm_kisan_credit_card"],
+      "description": "PM Kisan excludes 'agricultural labourers' but includes 'farmers/cultivators'. MGNREGA explicitly targets labourers willing to do manual work. PM Fasal Bima includes sharecroppers. The boundary for a sharecropper who also does day labour is genuinely undefined.",
+      "contradicting_rules": [
+        {"scheme": "pm_kisan", "rule": "pmk_r1a", "says": "occupation must be farmer/cultivator"},
+        {"scheme": "mgnrega", "rule": "mgn_r1", "says": "any adult rural household member"},
+        {"scheme": "pm_fasal_bima", "rule": "pmfby_r1", "says": "sharecroppers and tenant farmers explicitly included"}
+      ],
+      "engine_behaviour": "Flag ambiguity. Ask user: 'Do you own/lease/sharecrop the land you farm, or do you work as a daily wage labourer on someone else's farm?' Do not infer from other fields.",
+      "risk_of_wrong_answer": "Incorrectly qualifying a pure agricultural labourer for PM Kisan causes a real application that will be rejected."
+    },
+
+    {
+      "id": "AMBIGUITY-002",
+      "type": "jurisdictional_overlap",
+      "severity": "HIGH",
+      "title": "Rural-urban boundary — census towns / peri-urban",
+      "schemes_affected": ["pmay_gramin", "pmay_urban", "mgnrega", "ayushman_bharat"],
+      "description": "Census towns (villages reclassified as towns in 2011 census) fall in urban jurisdiction under PMAY-U but may still be under Gram Panchayat for MGNREGA. A family in a census town may be ineligible for PMAY-G (rural) but also not in an Urban Local Body for PMAY-U.",
+      "contradicting_rules": [
+        {"scheme": "pmay_gramin", "rule": "pmayg_r1", "says": "rural — Gram Panchayat jurisdiction"},
+        {"scheme": "pmay_urban", "rule": "pmayu_r1", "says": "statutory towns and notified planning areas"},
+        {"scheme": "mgnrega", "rule": "mgn_r1", "says": "rural — may still apply to census towns with Gram Panchayat"}
+      ],
+      "engine_behaviour": "If residence_type is 'peri-urban', flag both PMAY-G and PMAY-U with uncertainty. Output: 'Your area may be classified as rural or urban — verify with your Block Development Office before applying.'",
+      "risk_of_wrong_answer": "Confident recommendation to apply for PMAY-G when person is in urban area results in rejection after effort."
+    },
+
+    {
+      "id": "AMBIGUITY-003",
+      "type": "definitional",
+      "severity": "CRITICAL",
+      "title": "PM Kisan — leased/sharecrop land and ownership requirement",
+      "schemes_affected": ["pm_kisan"],
+      "description": "PM Kisan operational guidelines say 'cultivable land holding in their names of farmer family'. 'In their names' implies formal ownership. However, many farmers with only leased or sharecrop arrangements have been enrolled in PM Kisan by local officials. The scheme has not explicitly excluded them, but it also has not explicitly included them.",
+      "contradicting_rules": [
+        {"scheme": "pm_kisan", "rule": "pmk_r1b", "says": "land ownership required (implied by 'in their names')"},
+        {"scheme": "pm_fasal_bima", "rule": "pmfby_r1", "says": "leased/sharecrop explicitly allowed"},
+        {"scheme": "pm_kisan_credit_card", "rule": "kcc_r2b", "says": "leased land eligible for KCC"}
+      ],
+      "field_reality": "Many state governments have enrolled leased farmers in PM Kisan. Some states require NOC from landowner. This is not consistent nationwide.",
+      "engine_behaviour": "When land_type is 'leased' or 'sharecrop': assign PM Kisan confidence = 0.45. Surface AMBIGUITY-003. Say: 'You may or may not qualify — visit your nearest Gram Panchayat to verify local practice.'",
+      "risk_of_wrong_answer": "Confidently qualifying a leased farmer leads to application → rejection → loss of trust in the system."
+    },
+
+    {
+      "id": "AMBIGUITY-004",
+      "type": "data_staleness",
+      "severity": "HIGH",
+      "title": "SECC 2011 data is 15 years old — affects Ayushman Bharat and PMAY-G",
+      "schemes_affected": ["ayushman_bharat", "pmay_gramin"],
+      "description": "Both PM-JAY and PMAY-G eligibility is anchored to SECC 2011 data. In 15 years: families have moved, household compositions changed, people died, new households formed. Someone who was SECC-listed in 2011 may have become prosperous. Someone newly poor may not be on the list.",
+      "contradicting_rules": [],
+      "engine_behaviour": "For any SECC-dependent scheme: if secc_listed=null (unknown), output confidence maximum 0.55 and always say 'Your eligibility depends on your 2011 SECC status — check at pmjay.gov.in or your nearest Common Service Centre.' Never assert SECC status from other fields.",
+      "risk_of_wrong_answer": "Person goes to hospital assuming Ayushman card coverage, gets rejected at cashless counter."
+    },
+
+    {
+      "id": "AMBIGUITY-005",
+      "type": "definitional",
+      "severity": "MEDIUM",
+      "title": "PMUY 2.0 — 'poor household' undefined",
+      "schemes_affected": ["pm_ujjwala"],
+      "description": "PMUY 2.0 expanded eligibility from 'BPL' to 'poor household', allowing self-declaration. However 'poor' is not defined in the scheme guidelines. Different oil company distributers apply different informal criteria.",
+      "contradicting_rules": [
+        {"scheme": "pm_ujjwala", "rule": "pmuy_r3e", "says": "self-declaration of 'poor' accepted"}
+      ],
+      "engine_behaviour": "If user has no BPL/PHH/AAY card and no SECC listing but claims to be poor: assign confidence 0.55, flag ambiguity, say: 'Under PMUY 2.0 you may qualify with a self-declaration — visit your nearest LPG distributor. Acceptance varies.'",
+      "risk_of_wrong_answer": "Low — self-declaration is an official channel, but user may make wasted trip."
+    },
+
+    {
+      "id": "AMBIGUITY-006",
+      "type": "definitional",
+      "severity": "MEDIUM",
+      "title": "NSAP widow pension — does remarriage disqualify?",
+      "schemes_affected": ["nsap"],
+      "description": "IGNWPS (Indira Gandhi National Widow Pension) requires the beneficiary to be a widow. The scheme does not explicitly state that remarriage disqualifies, but 'widow' status technically ends upon remarriage. Enforcement varies by state.",
+      "contradicting_rules": [
+        {"scheme": "nsap", "rule": "nsap_ignwps", "says": "marital_status = widowed required"}
+      ],
+      "engine_behaviour": "If marital_status = 'remarried' AND previous_spouse_deceased = true: assign NSAP IGNWPS confidence = 0.30. Say: 'Widow pension rules differ by state regarding remarried beneficiaries. Verify with your Block Development Office.'",
+      "risk_of_wrong_answer": "A remarried woman incorrectly told she qualifies may apply and be rejected or have existing benefits stopped."
+    },
+
+    {
+      "id": "AMBIGUITY-007",
+      "type": "overlap",
+      "severity": "LOW",
+      "title": "PM-SYM and Atal Pension Yojana — both claimable simultaneously",
+      "schemes_affected": ["pm_shram_yogi_mandhan", "atal_pension_yojana"],
+      "description": "PM-SYM and APY are NOT mutually exclusive. An unorganised worker aged 18–40 with income <₹15,000/month can enroll in BOTH. Most beneficiaries and even field staff are unaware of this. Potential dual benefit worth flagging as a positive overlap.",
+      "contradicting_rules": [],
+      "engine_behaviour": "When a user qualifies for both: explicitly say 'You may enroll in BOTH PM-SYM and APY simultaneously. These are separate pension schemes and are not mutually exclusive.'",
+      "risk_of_wrong_answer": "User foregoes one scheme unnecessarily — loss of benefit."
+    },
+
+    {
+      "id": "AMBIGUITY-008",
+      "type": "definitional",
+      "severity": "MEDIUM",
+      "title": "MGNREGA — 100-day guarantee is per 'household'. What is a household?",
+      "schemes_affected": ["mgnrega"],
+      "description": "MGNREGA guarantees 100 days per 'household'. In joint/multi-generational families living together, it is unclear whether sub-families (married sons living in same compound) count as separate households for MGNREGA purposes. Practice varies by Gram Panchayat.",
+      "contradicting_rules": [
+        {"scheme": "mgnrega", "rule": "mgn_r4", "says": "job card per household"}
+      ],
+      "engine_behaviour": "Flag ambiguity if family_size > 6 or if user indicates multi-generational household. Say: 'If multiple married couples live together, you may each qualify for 100 days if registered separately — ask your Gram Panchayat.'",
+      "risk_of_wrong_answer": "Medium — affects how much work is available, not whether they qualify at all."
+    },
+
+    {
+      "id": "AMBIGUITY-009",
+      "type": "definitional",
+      "severity": "HIGH",
+      "title": "PM MUDRA — farmer with a side business",
+      "schemes_affected": ["pm_mudra"],
+      "description": "MUDRA explicitly excludes 'farm activities' but includes 'allied agricultural' (dairy, poultry, fisheries). A farmer who also runs a small kirana shop qualifies for MUDRA for the shop income, but not for the farm. If a user describes themselves as a farmer with a side business, the business portion qualifies but ambiguity about how to assess their profile is high.",
+      "contradicting_rules": [
+        {"scheme": "pm_mudra", "rule": "mudra_r1", "says": "non-farm activities only; allied agri OK"}
+      ],
+      "engine_behaviour": "If occupation = farmer AND has_side_business = true: qualify MUDRA for the side business at confidence 0.78. Note: 'MUDRA covers your non-farm business activity, not farming income.'",
+      "risk_of_wrong_answer": "Medium — user applies correctly for side business, no major harm."
+    },
+
+    {
+      "id": "AMBIGUITY-010",
+      "type": "overlap",
+      "severity": "MEDIUM",
+      "title": "Existing zero-balance account vs PMJDY — insurance rider applicability",
+      "schemes_affected": ["pm_jan_dhan"],
+      "description": "PMJDY provides specific benefits (₹2L accidental insurance, ₹30K life cover, overdraft) that are tied to the PMJDY account type. A person who already has a zero-balance savings account at a bank may have opened it before PMJDY existed. Such accounts may NOT carry the PMJDY insurance riders even though they appear similar.",
+      "contradicting_rules": [],
+      "engine_behaviour": "If has_bank_account = true but has_pmjdy_account is null: flag ambiguity. Say: 'If your account was opened before PMJDY (2014), you may not have the full insurance benefits. Confirm with your bank whether your account is a PMJDY account.'",
+      "risk_of_wrong_answer": "Person assumes they have ₹2L accidental cover but does not — potentially serious."
+    },
+
+    {
+      "id": "AMBIGUITY-011",
+      "type": "definitional",
+      "severity": "HIGH",
+      "title": "PM Kisan — income tax exclusion: household or individual?",
+      "schemes_affected": ["pm_kisan"],
+      "description": "PM Kisan exclusion criterion (i) says 'all families which pay income tax'. But a farm household where the farmer does not file ITR but a salaried son in the same family does creates ambiguity. Some states have interpreted 'family' at household level; others at the specific applicant level.",
+      "contradicting_rules": [
+        {"scheme": "pm_kisan", "rule": "pmk_excl_1", "says": "is_income_tax_payer = true → excluded"}
+      ],
+      "engine_behaviour": "If is_income_tax_payer = false but user reports another family member files ITR: flag AMBIGUITY-011 at confidence 0.55. Say: 'If any member of your household files income tax, your PM Kisan eligibility depends on your state's interpretation. Verify with your local agriculture office.'",
+      "risk_of_wrong_answer": "High — farmer applies, payment made, later challenged during verification, recovery demanded."
+    },
+
+    {
+      "id": "AMBIGUITY-012",
+      "type": "definitional",
+      "severity": "HIGH",
+      "title": "Gig/platform workers — organised or unorganised sector?",
+      "schemes_affected": ["pm_shram_yogi_mandhan", "atal_pension_yojana"],
+      "description": "App-based gig workers (Ola/Uber drivers, Swiggy/Zomato delivery workers) are technically not EPFO/ESIC members but earn through a platform company. Courts and government have debated whether they are 'organised sector'. PM-SYM targets 'unorganised workers'. Gig workers occupy a genuine grey zone.",
+      "contradicting_rules": [],
+      "engine_behaviour": "If occupation = 'gig_worker' or 'platform_worker': flag ambiguity on PM-SYM and APY. Assign confidence 0.60. Say: 'Gig workers may qualify as unorganised workers — check your EPFO/ESIC status. If you are not an EPFO/ESIC member, you likely qualify.'",
+      "risk_of_wrong_answer": "Medium — if gig worker is actually ESIC-covered by platform company, they would be ineligible."
+    },
+
+    {
+      "id": "AMBIGUITY-013",
+      "type": "jurisdictional_overlap",
+      "severity": "MEDIUM",
+      "title": "MGNREGA in census towns",
+      "schemes_affected": ["mgnrega"],
+      "description": "Census towns are villages reclassified as urban in census. However, if they are still under Gram Panchayat (not constituted as ULB), MGNREGA may still apply. This depends on state government notification, not census classification.",
+      "contradicting_rules": [],
+      "engine_behaviour": "If residence_type = 'peri-urban': flag ambiguity on MGNREGA. Say: 'MGNREGA eligibility in your area depends on whether your locality is under a Gram Panchayat — verify at your local Block Development Office.'",
+      "risk_of_wrong_answer": "Medium."
+    },
+
+    {
+      "id": "AMBIGUITY-014",
+      "type": "overlap",
+      "severity": "LOW",
+      "title": "PM Kisan and MGNREGA — can both be claimed?",
+      "schemes_affected": ["pm_kisan", "mgnrega"],
+      "description": "A small farmer who also does MGNREGA work in off-season qualifies for both. These are NOT mutually exclusive. Most farmers don't know this. PM Kisan pays ₹6,000/year for owning land. MGNREGA pays wages for work actually done.",
+      "contradicting_rules": [],
+      "engine_behaviour": "When user qualifies for both: explicitly confirm both are claimable simultaneously. Say: 'You can receive PM Kisan payments AND work under MGNREGA in the same year — these do not conflict.'",
+      "risk_of_wrong_answer": "User unnecessarily foregoes MGNREGA income."
+    },
+
+    {
+      "id": "AMBIGUITY-015",
+      "type": "definitional",
+      "severity": "HIGH",
+      "title": "PMMVY — 'first living child' and previous pregnancy loss",
+      "schemes_affected": ["pm_matru_vandana"],
+      "description": "PMMVY benefit is for 'first living child'. A woman who previously had a stillbirth or miscarriage and is now pregnant with what she considers her 'first child' technically qualifies — prior pregnancy loss does not make this the 'second' child. However, some field offices have incorrectly rejected such applications.",
+      "contradicting_rules": [
+        {"scheme": "pm_matru_vandana", "rule": "pmmvy_r1c", "says": "first living child required"}
+      ],
+      "engine_behaviour": "If user indicates previous stillbirth/miscarriage: explicitly clarify 'Previous pregnancy loss (stillbirth or miscarriage) does NOT affect PMMVY eligibility — you are still eligible for the first living child benefit.'",
+      "risk_of_wrong_answer": "HIGH — vulnerable woman denied benefit she legally deserves."
+    },
+
+    {
+      "id": "AMBIGUITY-016",
+      "type": "definitional",
+      "severity": "MEDIUM",
+      "title": "NSAP — 'destitute' definition is undefined",
+      "schemes_affected": ["nsap"],
+      "description": "NSAP Guidelines say eligible persons are 'destitute persons having little or no regular means of subsistence from own sources of income or through financial support from family members or other sources.' 'Little or no' is entirely discretionary. Gram Panchayat Pradhan makes the call.",
+      "contradicting_rules": [],
+      "engine_behaviour": "If user does not have BPL card but has very low income: flag NSAP with confidence 0.45. Say: 'You may qualify for NSAP as a destitute person — this depends on Gram Panchayat / ULB assessment. Apply through your local office with income evidence.'",
+      "risk_of_wrong_answer": "Medium — false positive sends user to apply; false negative denies information about a potentially valid claim."
+    },
+
+    {
+      "id": "AMBIGUITY-017",
+      "type": "overlap",
+      "severity": "LOW",
+      "title": "PMJJBY and PMSBY — both claimable simultaneously",
+      "schemes_affected": ["pm_jeevan_jyoti_bima", "pm_suraksha_bima"],
+      "description": "PMJJBY (life insurance ₹2L) and PMSBY (accidental insurance ₹2L) are completely different products and can be held simultaneously. Together they provide ₹4L total cover for ₹456/year. Most people assume they must choose one.",
+      "contradicting_rules": [],
+      "engine_behaviour": "When user qualifies for both: explicitly say 'Both PMJJBY and PMSBY can be enrolled simultaneously. Together they provide ₹4 lakh coverage for just ₹456/year total.'",
+      "risk_of_wrong_answer": "User foregoes ₹2L additional cover."
+    }
+
+  ],
+
+  "cross_scheme_prerequisite_overlaps": [
+    {
+      "note": "PM Jan Dhan is a prerequisite for 11 out of 15 schemes. This is the most critical single point of failure — a person without a bank account is locked out of almost everything.",
+      "schemes_blocked_without_bank_account": [
+        "pm_kisan", "pmay_gramin", "pmay_urban", "pm_ujjwala",
+        "pm_matru_vandana", "nsap", "pm_fasal_bima",
+        "pm_shram_yogi_mandhan", "atal_pension_yojana",
+        "pm_mudra", "pm_kisan_credit_card",
+        "pm_jeevan_jyoti_bima", "pm_suraksha_bima"
+      ]
+    }
+  ]
+}

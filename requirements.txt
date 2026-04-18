@@ -1,0 +1,16 @@
+# Core engine — no external dependencies (pure Python)
+# The rule evaluator and matcher use only stdlib
+
+# Interface layer
+google-genai>=1.0.0         # Gemini API for Hinglish NLP extraction (free: 1500 req/day, model: gemini-1.5-flash)
+rich>=13.0.0             # Terminal formatting for CLI output
+
+# Prerequisites graph
+# networkx is optional — we implement Kahn's topo-sort directly in prerequisite_sequencer.py
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# Data validation (optional, for schema validation of scheme JSONs)
+jsonschema>=4.20.0

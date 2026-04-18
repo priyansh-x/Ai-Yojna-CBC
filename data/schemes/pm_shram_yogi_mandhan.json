@@ -1,0 +1,108 @@
+{
+  "scheme_id": "pm_shram_yogi_mandhan",
+  "scheme_name": "Pradhan Mantri Shram Yogi Maan-Dhan (PM-SYM)",
+  "ministry": "Ministry of Labour & Employment",
+  "benefit": "Monthly pension of ₹3,000 after age 60. Contribution: ₹55–₹200/month depending on age at enrollment (18–40). Government matches contribution.",
+  "application_portal": "maandhan.in",
+  "source_urls": [
+    "https://maandhan.in",
+    "https://labour.gov.in/pm-shram-yogi-maandhan"
+  ],
+  "last_verified": "2026-04-11",
+  "source_confidence": 0.90,
+  "notes": "Targets unorganised sector workers. Key exclusions: EPFO/ESIC/NPS members and income tax payers. The boundary between 'organised' and 'unorganised' sector is the main ambiguity.",
+
+  "eligibility_rules": {
+    "operator": "AND",
+    "conditions": [
+      {
+        "rule_id": "pmsym_r1",
+        "field": "age",
+        "operator": "BETWEEN",
+        "value": [18, 40],
+        "confidence": 0.98,
+        "source": "PM-SYM Guidelines — entry age 18–40 years"
+      },
+      {
+        "rule_id": "pmsym_r2",
+        "description": "Monthly income must be ≤ ₹15,000",
+        "field": "monthly_income",
+        "operator": "LTE",
+        "value": 15000,
+        "confidence": 0.92,
+        "source": "PM-SYM Guidelines — monthly income ≤ ₹15,000"
+      },
+      {
+        "rule_id": "pmsym_r3",
+        "description": "Must be an unorganised sector worker",
+        "field": "sector_type",
+        "operator": "EQ",
+        "value": "unorganised",
+        "confidence": 0.80,
+        "source": "PM-SYM Guidelines — 'unorganised workers'",
+        "ambiguity_flag": "AMBIGUITY-012",
+        "ambiguity_note": "Unorganised defined by exclusion: not covered under EPFO/ESIC/NPS. Gig workers, platform workers on apps may be in grey zone."
+      },
+      {
+        "rule_id": "pmsym_r4",
+        "description": "Must NOT be member of EPFO / ESIC / NPS",
+        "operator": "NOT",
+        "conditions": [
+          {
+            "operator": "OR",
+            "conditions": [
+              {
+                "rule_id": "pmsym_excl_1",
+                "field": "is_epfo_member",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.95,
+                "source": "PM-SYM exclusion — EPFO members excluded"
+              },
+              {
+                "rule_id": "pmsym_excl_2",
+                "field": "is_esic_member",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.95,
+                "source": "PM-SYM exclusion — ESIC members excluded"
+              },
+              {
+                "rule_id": "pmsym_excl_3",
+                "field": "is_nps_member",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.95,
+                "source": "PM-SYM exclusion — NPS members excluded"
+              },
+              {
+                "rule_id": "pmsym_excl_4",
+                "field": "is_income_tax_payer",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.92,
+                "source": "PM-SYM exclusion — income tax payers excluded"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rule_id": "pmsym_r5",
+        "field": "has_bank_account",
+        "operator": "EQ",
+        "value": true,
+        "confidence": 0.97,
+        "source": "PM-SYM — bank account / Jan Dhan account mandatory for contribution auto-debit"
+      }
+    ]
+  },
+
+  "required_documents": [
+    {"document": "Aadhaar Card", "mandatory": true, "priority": 1, "obtainable_from": "Aadhaar Enrollment Centre"},
+    {"document": "Bank Account / PMJDY passbook (for auto-debit)", "mandatory": true, "priority": 2, "obtainable_from": "Any bank / PMJDY"}
+  ],
+
+  "prerequisites": ["pm_jan_dhan"],
+  "ambiguity_flags": ["AMBIGUITY-007", "AMBIGUITY-012"]
+}

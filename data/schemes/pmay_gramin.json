@@ -1,0 +1,123 @@
+{
+  "scheme_id": "pmay_gramin",
+  "scheme_name": "Pradhan Mantri Awaas Yojana — Gramin (PMAY-G)",
+  "ministry": "Ministry of Rural Development",
+  "benefit": "Financial assistance of ₹1.20 lakh (plain areas) or ₹1.30 lakh (hilly/difficult areas) for construction of a pucca house",
+  "application_portal": "pmayg.nic.in",
+  "source_urls": [
+    "https://pmayg.nic.in",
+    "https://rural.gov.in/sites/default/files/PMAYG_Guidelines.pdf"
+  ],
+  "last_verified": "2026-04-11",
+  "source_confidence": 0.85,
+  "notes": "PMAY-G uses SECC 2011 and Awaas+ app surveys for targeting. Beneficiary list is state-curated. NOT open enrollment — state determines eligibility from SECC list.",
+
+  "eligibility_rules": {
+    "operator": "AND",
+    "conditions": [
+      {
+        "rule_id": "pmayg_r1",
+        "field": "residence_type",
+        "operator": "EQ",
+        "value": "rural",
+        "confidence": 0.95,
+        "source": "PMAY-G Guidelines — applies to rural areas under Gram Panchayat"
+      },
+      {
+        "rule_id": "pmayg_r2",
+        "description": "Must be houseless OR living in 0–1 room kutcha house",
+        "operator": "OR",
+        "conditions": [
+          {
+            "rule_id": "pmayg_r2a",
+            "field": "is_houseless",
+            "operator": "EQ",
+            "value": true,
+            "confidence": 0.92,
+            "source": "PMAY-G priority criteria — houseless households are highest priority"
+          },
+          {
+            "rule_id": "pmayg_r2b",
+            "field": "house_type",
+            "operator": "IN",
+            "value": ["kutcha", "houseless"],
+            "confidence": 0.88,
+            "source": "PMAY-G targeting — 0 or 1 room kutcha house",
+            "ambiguity_note": "Semi-kutcha / transitional housing not clearly categorized"
+          }
+        ]
+      },
+      {
+        "rule_id": "pmayg_r3",
+        "description": "Must NOT fall under any exclusion category",
+        "operator": "NOT",
+        "conditions": [
+          {
+            "operator": "OR",
+            "conditions": [
+              {
+                "rule_id": "pmayg_excl_1",
+                "field": "has_motorised_vehicle",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.85,
+                "source": "SECC exclusion — households owning a motorised 2/3/4 wheeler or fishing boat",
+                "ambiguity_note": "Tractor used for farming is excluded from this exclusion — farming equipment is not counted"
+              },
+              {
+                "rule_id": "pmayg_excl_2",
+                "field": "has_refrigerator",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.82,
+                "source": "SECC exclusion — households with refrigerator"
+              },
+              {
+                "rule_id": "pmayg_excl_3",
+                "field": "any_member_earns_over_10k_month",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.80,
+                "source": "SECC exclusion — any member earning ≥ ₹10,000/month"
+              },
+              {
+                "rule_id": "pmayg_excl_4",
+                "field": "pays_income_tax",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.88,
+                "source": "SECC exclusion — income tax paying households"
+              },
+              {
+                "rule_id": "pmayg_excl_5",
+                "field": "has_government_employee",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.88,
+                "source": "SECC exclusion — government employee in household"
+              },
+              {
+                "rule_id": "pmayg_excl_6",
+                "field": "land_area_hectares",
+                "operator": "GTE",
+                "value": 2.5,
+                "confidence": 0.82,
+                "source": "SECC exclusion — households owning ≥ 2.5 acres of irrigated land"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+
+  "required_documents": [
+    {"document": "Aadhaar Card (all family members)", "mandatory": true, "priority": 1, "obtainable_from": "Aadhaar Enrollment Centre"},
+    {"document": "SECC 2011 registration confirmation", "mandatory": true, "priority": 2, "obtainable_from": "Gram Panchayat / BDO office"},
+    {"document": "Bank Account (linked to Aadhaar)", "mandatory": true, "priority": 3, "obtainable_from": "Any bank / PMJDY"},
+    {"document": "Job Card (MGNREGA)", "mandatory": false, "priority": 4, "obtainable_from": "Gram Panchayat", "note": "Required only if using MGNREGA convergence for labour component"}
+  ],
+
+  "prerequisites": ["pm_jan_dhan"],
+  "ambiguity_flags": ["AMBIGUITY-002", "AMBIGUITY-004"]
+}

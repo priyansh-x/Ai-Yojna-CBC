@@ -1,0 +1,153 @@
+{
+  "scheme_id": "ayushman_bharat",
+  "scheme_name": "Pradhan Mantri Jan Arogya Yojana (PM-JAY / Ayushman Bharat)",
+  "ministry": "Ministry of Health & Family Welfare / National Health Authority",
+  "benefit": "Health coverage up to ₹5 lakh per family per year for secondary and tertiary hospitalisation",
+  "application_portal": "beneficiary.nha.gov.in",
+  "source_urls": [
+    "https://www.pmjay.gov.in",
+    "https://nha.gov.in/PM-JAY"
+  ],
+  "last_verified": "2026-04-11",
+  "source_confidence": 0.75,
+  "notes": "PM-JAY eligibility is entirely SECC-2011 driven — not income-based. The SECC data is from 2011 and is 15 years old. This is the single largest source of uncertainty in the entire system. Rural and urban eligibility use DIFFERENT criteria.",
+
+  "eligibility_rules": {
+    "operator": "OR",
+    "conditions": [
+      {
+        "rule_id": "pmjay_r1",
+        "description": "Rural eligibility — SECC 2011 deprivation criteria",
+        "operator": "AND",
+        "conditions": [
+          {
+            "rule_id": "pmjay_r1a",
+            "field": "residence_type",
+            "operator": "EQ",
+            "value": "rural",
+            "confidence": 0.95,
+            "source": "SECC-2011 Rural HH deprivation criteria"
+          },
+          {
+            "rule_id": "pmjay_r1b",
+            "description": "Meets at least one SECC rural deprivation criterion",
+            "operator": "OR",
+            "conditions": [
+              {
+                "rule_id": "pmjay_r1b_i",
+                "field": "is_houseless",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.88,
+                "source": "SECC rural deprivation D1 — only one room with kucha walls and kucha roof"
+              },
+              {
+                "rule_id": "pmjay_r1b_ii",
+                "field": "no_adult_member_aged_16_to_59",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.85,
+                "source": "SECC rural deprivation D2 — households with no adult member between ages 16 and 59"
+              },
+              {
+                "rule_id": "pmjay_r1b_iii",
+                "field": "female_headed_no_adult_male",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.85,
+                "source": "SECC rural deprivation D3 — female-headed household with no adult male member aged 16–59"
+              },
+              {
+                "rule_id": "pmjay_r1b_iv",
+                "field": "has_disabled_member_no_able_bodied_adult",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.82,
+                "source": "SECC rural deprivation D4"
+              },
+              {
+                "rule_id": "pmjay_r1b_v",
+                "field": "is_sc_st",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.85,
+                "source": "SECC rural deprivation D5 — SC/ST households"
+              },
+              {
+                "rule_id": "pmjay_r1b_vi",
+                "field": "is_landless_casual_labourer",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.82,
+                "source": "SECC rural deprivation D6 — landless households deriving major income from casual manual labour"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rule_id": "pmjay_r2",
+        "description": "Urban eligibility — occupational criteria",
+        "operator": "AND",
+        "conditions": [
+          {
+            "rule_id": "pmjay_r2a",
+            "field": "residence_type",
+            "operator": "EQ",
+            "value": "urban",
+            "confidence": 0.95,
+            "source": "SECC-2011 Urban HH occupational criteria"
+          },
+          {
+            "rule_id": "pmjay_r2b",
+            "description": "Engaged in one of 11 defined occupational categories",
+            "field": "urban_occupation_category",
+            "operator": "IN",
+            "value": [
+              "ragpicker",
+              "beggar",
+              "domestic_worker",
+              "street_vendor",
+              "cobbler_hawker",
+              "construction_worker",
+              "plumber_mason_painter",
+              "sweeper_sanitation",
+              "home_based_worker",
+              "artisan",
+              "washer_man_chowkidar"
+            ],
+            "confidence": 0.80,
+            "source": "SECC-2011 Urban occupational category list (11 categories)",
+            "ambiguity_flag": "AMBIGUITY-004",
+            "ambiguity_note": "Categories defined in 2011. Gig workers, app-based workers not covered. 'Home-based worker' boundary is vague."
+          }
+        ]
+      },
+      {
+        "rule_id": "pmjay_r3",
+        "description": "Automatically included — AB-PMJAY 2.0 expansion",
+        "operator": "OR",
+        "conditions": [
+          {
+            "rule_id": "pmjay_r3a",
+            "field": "ration_card_type",
+            "operator": "IN",
+            "value": ["AAY", "PHH"],
+            "confidence": 0.85,
+            "source": "Ayushman Bharat expansion — NFSA beneficiaries included",
+            "ambiguity_note": "This expansion varies by state — not uniformly implemented"
+          }
+        ]
+      }
+    ]
+  },
+
+  "required_documents": [
+    {"document": "Aadhaar Card", "mandatory": true, "priority": 1, "obtainable_from": "Aadhaar Enrollment Centre"},
+    {"document": "Ration Card (PHH/AAY)", "mandatory": false, "priority": 2, "obtainable_from": "PDS/Food Department"},
+    {"document": "Ayushman Card (issued by NHA on verification)", "mandatory": false, "priority": 3, "obtainable_from": "Common Service Centre / Hospital Ayushman Mitra"}
+  ],
+
+  "prerequisites": [],
+  "ambiguity_flags": ["AMBIGUITY-004", "AMBIGUITY-002"]
+}

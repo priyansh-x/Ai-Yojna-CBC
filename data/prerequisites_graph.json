@@ -1,0 +1,147 @@
+{
+  "version": "1.0",
+  "description": "Directed acyclic graph of scheme prerequisites. An edge A→B means scheme A must be obtained/applied for before scheme B. Used by the prerequisite sequencer to produce the correct application order.",
+  "note": "The sequencer performs a topological sort of this graph to produce a linear application sequence for a given user's eligible schemes.",
+
+  "nodes": [
+    {"id": "pm_jan_dhan",            "name": "PM Jan Dhan Yojana",              "type": "enabler",   "priority_group": 0},
+    {"id": "ayushman_bharat",        "name": "Ayushman Bharat PM-JAY",          "type": "benefit",   "priority_group": 1},
+    {"id": "pmgkay",                 "name": "PMGKAY / NFSA Ration Card",       "type": "enabler",   "priority_group": 1},
+    {"id": "mgnrega",                "name": "MGNREGA Job Card",                "type": "benefit",   "priority_group": 1},
+    {"id": "pm_kisan",               "name": "PM Kisan",                        "type": "benefit",   "priority_group": 2},
+    {"id": "pm_ujjwala",             "name": "PM Ujjwala Yojana",               "type": "benefit",   "priority_group": 2},
+    {"id": "pmay_gramin",            "name": "PMAY-Gramin",                     "type": "benefit",   "priority_group": 2},
+    {"id": "pmay_urban",             "name": "PMAY-Urban",                      "type": "benefit",   "priority_group": 2},
+    {"id": "nsap",                   "name": "NSAP (Old Age / Widow / Disability Pension)", "type": "benefit", "priority_group": 2},
+    {"id": "pm_matru_vandana",       "name": "PM Matru Vandana Yojana",         "type": "benefit",   "priority_group": 2},
+    {"id": "sukanya_samriddhi",      "name": "Sukanya Samriddhi Yojana",        "type": "benefit",   "priority_group": 2},
+    {"id": "pm_shram_yogi_mandhan",  "name": "PM Shram Yogi Maan-Dhan",        "type": "benefit",   "priority_group": 2},
+    {"id": "atal_pension_yojana",    "name": "Atal Pension Yojana",             "type": "benefit",   "priority_group": 2},
+    {"id": "pm_jeevan_jyoti_bima",   "name": "PM Jeevan Jyoti Bima Yojana",    "type": "benefit",   "priority_group": 2},
+    {"id": "pm_suraksha_bima",       "name": "PM Suraksha Bima Yojana",         "type": "benefit",   "priority_group": 2},
+    {"id": "pm_kisan_credit_card",   "name": "Kisan Credit Card",               "type": "enabler",   "priority_group": 2},
+    {"id": "pm_mudra",               "name": "PM MUDRA Yojana",                 "type": "benefit",   "priority_group": 2},
+    {"id": "pm_fasal_bima",          "name": "PM Fasal Bima Yojana",            "type": "benefit",   "priority_group": 3}
+  ],
+
+  "edges": [
+    {
+      "from": "pm_jan_dhan",
+      "to": "pm_kisan",
+      "reason": "PM Kisan payment is made directly to bank account. Without PMJDY/bank account, DBT transfer fails.",
+      "blocking": true
+    },
+    {
+      "from": "pm_jan_dhan",
+      "to": "pm_ujjwala",
+      "reason": "LPG subsidy transferred to bank account. Bank account required.",
+      "blocking": true
+    },
+    {
+      "from": "pm_jan_dhan",
+      "to": "pmay_gramin",
+      "reason": "Construction assistance directly transferred to beneficiary bank account.",
+      "blocking": true
+    },
+    {
+      "from": "pm_jan_dhan",
+      "to": "pmay_urban",
+      "reason": "Subsidy credited to bank account.",
+      "blocking": true
+    },
+    {
+      "from": "pm_jan_dhan",
+      "to": "nsap",
+      "reason": "Pension amount transferred to bank account via DBT.",
+      "blocking": true
+    },
+    {
+      "from": "pm_jan_dhan",
+      "to": "pm_matru_vandana",
+      "reason": "Maternity benefit transferred to woman's bank account.",
+      "blocking": true
+    },
+    {
+      "from": "pm_jan_dhan",
+      "to": "pm_shram_yogi_mandhan",
+      "reason": "Monthly contribution auto-debited from bank account.",
+      "blocking": true
+    },
+    {
+      "from": "pm_jan_dhan",
+      "to": "atal_pension_yojana",
+      "reason": "APY requires savings bank account for contribution auto-debit.",
+      "blocking": true
+    },
+    {
+      "from": "pm_jan_dhan",
+      "to": "pm_jeevan_jyoti_bima",
+      "reason": "Annual premium ₹436 auto-debited from bank account.",
+      "blocking": true
+    },
+    {
+      "from": "pm_jan_dhan",
+      "to": "pm_suraksha_bima",
+      "reason": "Annual premium ₹20 auto-debited from bank account.",
+      "blocking": true
+    },
+    {
+      "from": "pm_jan_dhan",
+      "to": "pm_mudra",
+      "reason": "Loan disbursed to bank account.",
+      "blocking": true
+    },
+    {
+      "from": "pm_jan_dhan",
+      "to": "pm_kisan_credit_card",
+      "reason": "KCC is a bank product — requires existing bank relationship.",
+      "blocking": true
+    },
+    {
+      "from": "pm_jan_dhan",
+      "to": "pm_fasal_bima",
+      "reason": "Crop insurance claim paid to bank account.",
+      "blocking": true
+    },
+    {
+      "from": "pm_kisan_credit_card",
+      "to": "pm_fasal_bima",
+      "reason": "Loanee farmers with KCC are automatically enrolled in PMFBY. KCC is the fastest path to PMFBY for loanee farmers.",
+      "blocking": false,
+      "note": "Non-loanee farmers can voluntarily enroll in PMFBY without KCC."
+    },
+    {
+      "from": "pmgkay",
+      "to": "ayushman_bharat",
+      "reason": "Under Ayushman Bharat expansion, NFSA beneficiaries (PHH/AAY ration card) are included. Getting a ration card first enables Ayushman Bharat access for non-SECC households.",
+      "blocking": false,
+      "note": "Only relevant if user is not already SECC-listed. SECC-listed users can access Ayushman Bharat directly."
+    },
+    {
+      "from": "mgnrega",
+      "to": "pmay_gramin",
+      "reason": "Under PMAY-G convergence, MGNREGA provides 90 days of unskilled labour for house construction. Having a Job Card enables this convergence benefit.",
+      "blocking": false,
+      "note": "PMAY-G is not blocked by absence of MGNREGA card, but benefit is enhanced with it."
+    }
+  ],
+
+  "application_sequence_rules": [
+    {
+      "rule": "Always apply for PM_JAN_DHAN first if user has no bank account.",
+      "reason": "13 of 15 schemes require bank account for DBT. Without it, everything else fails."
+    },
+    {
+      "rule": "Apply for Aadhaar before any scheme.",
+      "reason": "Aadhaar is required for Aadhaar-seeding of bank accounts which enables DBT for all schemes. Aadhaar enrollment is not a scheme but is the foundational prerequisite."
+    },
+    {
+      "rule": "Apply for ration card (PHH/AAY) early if user doesn't have one.",
+      "reason": "Ration card unlocks PMGKAY foodgrain, Ayushman Bharat, PM Ujjwala. State process, may take weeks."
+    },
+    {
+      "rule": "KCC before PMFBY for loanee farmers.",
+      "reason": "Crop loan via KCC auto-enrolls in PMFBY at subsidised premium."
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "scheme_id": "nsap",
+  "scheme_name": "National Social Assistance Programme (NSAP)",
+  "ministry": "Ministry of Rural Development",
+  "benefit": "Monthly pension: IGNOAPS (old age) ₹200–₹500/month; IGNWPS (widow) ₹300/month; IGNDPS (disability) ₹300/month; NFBS (family bereavement) ₹20,000 one-time",
+  "application_portal": "nsap.nic.in",
+  "source_urls": [
+    "https://nsap.nic.in",
+    "https://rural.gov.in/sites/default/files/NSAP_Guidelines_2014.pdf"
+  ],
+  "last_verified": "2026-04-11",
+  "source_confidence": 0.85,
+  "notes": "NSAP is an umbrella of 5 sub-schemes. Each has distinct eligibility. Central pension amount is minimal — states top up. The 'BPL' requirement uses state BPL lists which vary widely.",
+
+  "eligibility_rules": {
+    "operator": "AND",
+    "conditions": [
+      {
+        "rule_id": "nsap_r1",
+        "description": "Must be BPL or 'destitute' (defined as little or no regular means of subsistence)",
+        "operator": "OR",
+        "conditions": [
+          {
+            "rule_id": "nsap_r1a",
+            "field": "ration_card_type",
+            "operator": "IN",
+            "value": ["AAY", "PHH"],
+            "confidence": 0.82,
+            "source": "NSAP Guidelines 2014 — BPL as per state BPL list"
+          },
+          {
+            "rule_id": "nsap_r1b",
+            "field": "is_destitute",
+            "operator": "EQ",
+            "value": true,
+            "confidence": 0.55,
+            "source": "NSAP Guidelines — 'destitute persons having little or no regular means of subsistence'",
+            "ambiguity_flag": "AMBIGUITY-016",
+            "ambiguity_note": "'Destitute' is undefined. Discretion lies entirely with Gram Panchayat / ULB authority."
+          }
+        ]
+      },
+      {
+        "rule_id": "nsap_r2",
+        "description": "Must qualify for at least one NSAP sub-scheme",
+        "operator": "OR",
+        "conditions": [
+          {
+            "rule_id": "nsap_ignoaps",
+            "description": "IGNOAPS — Indira Gandhi National Old Age Pension Scheme",
+            "operator": "AND",
+            "conditions": [
+              {
+                "field": "age",
+                "operator": "GTE",
+                "value": 60,
+                "confidence": 0.97,
+                "source": "NSAP IGNOAPS — 60+ years"
+              }
+            ]
+          },
+          {
+            "rule_id": "nsap_ignwps",
+            "description": "IGNWPS — Indira Gandhi National Widow Pension Scheme",
+            "operator": "AND",
+            "conditions": [
+              {
+                "field": "marital_status",
+                "operator": "EQ",
+                "value": "widowed",
+                "confidence": 0.90,
+                "source": "NSAP IGNWPS — widow",
+                "ambiguity_flag": "AMBIGUITY-006",
+                "ambiguity_note": "A widow who remarries — does pension cease? NSAP guidelines say widow status; remarriage technically ends widow status but enforcement is inconsistent."
+              },
+              {
+                "field": "age",
+                "operator": "BETWEEN",
+                "value": [40, 79],
+                "confidence": 0.90,
+                "source": "NSAP IGNWPS — 40–79 years (80+ shifts to IGNOAPS rate)"
+              }
+            ]
+          },
+          {
+            "rule_id": "nsap_igndps",
+            "description": "IGNDPS — Indira Gandhi National Disability Pension Scheme",
+            "operator": "AND",
+            "conditions": [
+              {
+                "field": "disability",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.88,
+                "source": "NSAP IGNDPS — severe or multiple disability"
+              },
+              {
+                "field": "disability_percentage",
+                "operator": "GTE",
+                "value": 80,
+                "confidence": 0.85,
+                "source": "NSAP IGNDPS — 80% or above disability",
+                "ambiguity_note": "Disability certificate from authorised medical board required"
+              },
+              {
+                "field": "age",
+                "operator": "BETWEEN",
+                "value": [18, 79],
+                "confidence": 0.90,
+                "source": "NSAP IGNDPS — 18–79 years"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+
+  "required_documents": [
+    {"document": "Aadhaar Card", "mandatory": true, "priority": 1, "obtainable_from": "Aadhaar Enrollment Centre"},
+    {"document": "BPL / Ration Card", "mandatory": true, "priority": 2, "obtainable_from": "PDS / Food Department"},
+    {"document": "Age Proof (birth cert / school cert / voter ID)", "mandatory": true, "priority": 3, "obtainable_from": "Municipality / School / Election Commission"},
+    {"document": "Bank Account", "mandatory": true, "priority": 4, "obtainable_from": "Any bank / PMJDY"},
+    {"document": "Disability Certificate (for IGNDPS)", "mandatory": false, "priority": 5, "obtainable_from": "District Civil Surgeon / Medical Board"},
+    {"document": "Husband's Death Certificate (for IGNWPS)", "mandatory": false, "priority": 5, "obtainable_from": "Municipality / Gram Panchayat"}
+  ],
+
+  "prerequisites": ["pm_jan_dhan"],
+  "ambiguity_flags": ["AMBIGUITY-006", "AMBIGUITY-016"]
+}

@@ -1,0 +1,110 @@
+{
+  "scheme_id": "pm_matru_vandana",
+  "scheme_name": "Pradhan Mantri Matru Vandana Yojana (PMMVY)",
+  "ministry": "Ministry of Women & Child Development",
+  "benefit": "₹5,000 cash benefit in 3 installments for first living child. Under PMMVY 2.0 (2022): ₹6,000 for second child if it is a girl.",
+  "application_portal": "pmmvy.wcd.gov.in",
+  "source_urls": [
+    "https://wcd.nic.in/schemes/pradhan-mantri-matru-vandana-yojana",
+    "https://pmmvy.wcd.gov.in"
+  ],
+  "last_verified": "2026-04-11",
+  "source_confidence": 0.85,
+  "notes": "PMMVY 2.0 introduced in 2022 expanded to second girl child. The 'first living child' criterion is crucial and often misunderstood — previous stillbirths do not reset this.",
+
+  "eligibility_rules": {
+    "operator": "OR",
+    "conditions": [
+      {
+        "rule_id": "pmmvy_r1",
+        "description": "PMMVY 1.0 — First living child component (₹5,000)",
+        "operator": "AND",
+        "conditions": [
+          {
+            "rule_id": "pmmvy_r1a",
+            "field": "gender",
+            "operator": "EQ",
+            "value": "female",
+            "confidence": 0.98,
+            "source": "PMMVY Guidelines — only pregnant women/lactating mothers"
+          },
+          {
+            "rule_id": "pmmvy_r1b",
+            "field": "age",
+            "operator": "GTE",
+            "value": 19,
+            "confidence": 0.97,
+            "source": "PMMVY Guidelines Rule 4 — 'pregnant women of 19 years of age and above'",
+            "ambiguity_note": "Age at which? At conception? At registration? At delivery? Guidelines say at time of registration."
+          },
+          {
+            "rule_id": "pmmvy_r1c",
+            "field": "is_first_living_child",
+            "operator": "EQ",
+            "value": true,
+            "confidence": 0.88,
+            "source": "PMMVY Guidelines — benefit for first living child only under 1.0",
+            "ambiguity_flag": "AMBIGUITY-015",
+            "ambiguity_note": "Previous miscarriage/stillbirth does NOT count as first child. The 'first living child' interpretation has caused rejections for women with pregnancy loss history."
+          },
+          {
+            "rule_id": "pmmvy_r1d",
+            "description": "Must NOT be a government employee (who gets paid maternity leave)",
+            "operator": "NOT",
+            "conditions": [
+              {
+                "field": "is_central_state_govt_employee",
+                "operator": "EQ",
+                "value": true,
+                "confidence": 0.90,
+                "source": "PMMVY Guidelines — central/state govt employees with maternity benefits excluded"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rule_id": "pmmvy_r2",
+        "description": "PMMVY 2.0 — Second child if girl (₹6,000)",
+        "operator": "AND",
+        "conditions": [
+          {
+            "rule_id": "pmmvy_r2a",
+            "field": "gender",
+            "operator": "EQ",
+            "value": "female",
+            "confidence": 0.98,
+            "source": "PMMVY 2.0 guidelines"
+          },
+          {
+            "rule_id": "pmmvy_r2b",
+            "field": "age",
+            "operator": "GTE",
+            "value": 19,
+            "confidence": 0.97,
+            "source": "PMMVY 2.0 — age criterion same"
+          },
+          {
+            "rule_id": "pmmvy_r2c",
+            "field": "is_second_child_and_girl",
+            "operator": "EQ",
+            "value": true,
+            "confidence": 0.82,
+            "source": "PMMVY 2.0 — second child benefit only if girl child",
+            "ambiguity_note": "PMMVY 2.0 not uniformly implemented across all states as of 2024"
+          }
+        ]
+      }
+    ]
+  },
+
+  "required_documents": [
+    {"document": "Aadhaar Card", "mandatory": true, "priority": 1, "obtainable_from": "Aadhaar Enrollment Centre"},
+    {"document": "MCP Card (Mother and Child Protection Card)", "mandatory": true, "priority": 2, "obtainable_from": "Anganwadi Centre / ASHa"},
+    {"document": "Bank Account (in woman's name, Aadhaar linked)", "mandatory": true, "priority": 3, "obtainable_from": "Any bank / PMJDY"},
+    {"document": "Husband's Aadhaar (if available)", "mandatory": false, "priority": 4, "obtainable_from": "Aadhaar Enrollment Centre"}
+  ],
+
+  "prerequisites": ["pm_jan_dhan"],
+  "ambiguity_flags": ["AMBIGUITY-015"]
+}

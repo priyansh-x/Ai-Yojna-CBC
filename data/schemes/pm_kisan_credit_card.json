@@ -1,0 +1,77 @@
+{
+  "scheme_id": "pm_kisan_credit_card",
+  "scheme_name": "Kisan Credit Card (KCC)",
+  "ministry": "Ministry of Agriculture & Farmers' Welfare / RBI",
+  "benefit": "Revolving crop loan at subsidised interest rate (4% effective with interest subvention for loans up to ₹3L). Also covers post-harvest, farm maintenance, and consumption needs.",
+  "application_portal": "Through bank branches / PM Kisan portal (for PM-KISAN linked KCC)",
+  "source_urls": [
+    "https://pmkisan.gov.in",
+    "https://www.rbi.org.in/Scripts/BS_CircularIndexDisplay.aspx?Id=11948"
+  ],
+  "last_verified": "2026-04-11",
+  "source_confidence": 0.87,
+  "notes": "KCC is technically a bank product but backed by government guidelines and interest subvention. It is a prerequisite enabler for PMFBY (mandatory enrollment for loanee farmers). Tenant/sharecrop farmers can also get KCC with No Objection Certificate from land owner.",
+
+  "eligibility_rules": {
+    "operator": "AND",
+    "conditions": [
+      {
+        "rule_id": "kcc_r1",
+        "description": "Must be engaged in agriculture or allied activities",
+        "field": "occupation",
+        "operator": "IN",
+        "value": ["farmer", "cultivator", "sharecropper", "tenant_farmer", "fisherman", "animal_husbandry_worker"],
+        "confidence": 0.90,
+        "source": "RBI KCC guidelines — farmers, sharecroppers, tenant farmers, oral lessees eligible"
+      },
+      {
+        "rule_id": "kcc_r2",
+        "description": "Must have some form of land association (owned, leased, or sharecrop)",
+        "operator": "OR",
+        "conditions": [
+          {
+            "rule_id": "kcc_r2a",
+            "field": "land_ownership",
+            "operator": "EQ",
+            "value": true,
+            "confidence": 0.92,
+            "source": "KCC — owned land primary basis"
+          },
+          {
+            "rule_id": "kcc_r2b",
+            "field": "land_type",
+            "operator": "IN",
+            "value": ["leased", "sharecrop"],
+            "confidence": 0.80,
+            "source": "RBI circular — tenant/sharecrop farmers eligible with NOC from landowner",
+            "ambiguity_note": "Bank discretion varies significantly — some banks insist on collateral even for small loans"
+          }
+        ]
+      },
+      {
+        "rule_id": "kcc_r3",
+        "description": "Must NOT be a wilful defaulter",
+        "operator": "NOT",
+        "conditions": [
+          {
+            "field": "is_wilful_defaulter",
+            "operator": "EQ",
+            "value": true,
+            "confidence": 0.92,
+            "source": "Standard bank credit policy"
+          }
+        ]
+      }
+    ]
+  },
+
+  "required_documents": [
+    {"document": "Aadhaar Card", "mandatory": true, "priority": 1, "obtainable_from": "Aadhaar Enrollment Centre"},
+    {"document": "Land records / NOC from landowner (for leased land)", "mandatory": true, "priority": 2, "obtainable_from": "Tehsildar / Land owner"},
+    {"document": "Passport photograph", "mandatory": true, "priority": 3, "obtainable_from": "Self"},
+    {"document": "Bank account", "mandatory": true, "priority": 4, "obtainable_from": "Any bank"}
+  ],
+
+  "prerequisites": ["pm_jan_dhan"],
+  "ambiguity_flags": ["AMBIGUITY-001", "AMBIGUITY-003"]
+}

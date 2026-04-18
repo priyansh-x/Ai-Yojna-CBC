@@ -1,0 +1,58 @@
+{
+  "scheme_id": "sukanya_samriddhi",
+  "scheme_name": "Sukanya Samriddhi Yojana (SSY)",
+  "ministry": "Ministry of Finance / Department of Posts",
+  "benefit": "High-interest (8.2% p.a. currently, revised quarterly) savings account for girl child. Maturity at 21 years or on marriage after 18. Partial withdrawal (50%) at 18 for education.",
+  "application_portal": "India Post offices / authorised banks",
+  "source_urls": [
+    "https://www.nsiindia.gov.in/InternalPage.aspx?Id_Pk=89",
+    "https://dea.gov.in/sites/default/files/Sukanya%20Samriddhi%20Account%20Rules%202016.pdf"
+  ],
+  "last_verified": "2026-04-11",
+  "source_confidence": 0.92,
+  "notes": "Purely a savings scheme — no income or caste restriction. Eligibility is about the girl child's age and the account-opening limit.",
+
+  "eligibility_rules": {
+    "operator": "AND",
+    "conditions": [
+      {
+        "rule_id": "ssy_r1",
+        "description": "Applicant is parent or legal guardian of a girl child",
+        "field": "is_parent_or_guardian_of_girl",
+        "operator": "EQ",
+        "value": true,
+        "confidence": 0.97,
+        "source": "SSY Rules 2016, Rule 3 — account opened by natural or legal guardian"
+      },
+      {
+        "rule_id": "ssy_r2",
+        "description": "Girl child must be under 10 years of age at time of account opening",
+        "field": "girl_child_age_at_opening",
+        "operator": "LT",
+        "value": 10,
+        "confidence": 0.98,
+        "source": "SSY Rules 2016, Rule 3(i) — 'girl child who has not attained the age of ten years'"
+      },
+      {
+        "rule_id": "ssy_r3",
+        "description": "Maximum 2 accounts per family (one per girl child, max 2 girls)",
+        "field": "existing_ssy_accounts_count",
+        "operator": "LT",
+        "value": 2,
+        "confidence": 0.93,
+        "source": "SSY Rules 2016, Rule 3(ii) — maximum two accounts per family",
+        "ambiguity_note": "Third account allowed if twins/triplets are born in second birth. Requires birth certificate proof."
+      }
+    ]
+  },
+
+  "required_documents": [
+    {"document": "Girl child's Birth Certificate", "mandatory": true, "priority": 1, "obtainable_from": "Municipal corporation / Gram Panchayat"},
+    {"document": "Parent/Guardian Aadhaar Card", "mandatory": true, "priority": 2, "obtainable_from": "Aadhaar Enrollment Centre"},
+    {"document": "Parent/Guardian PAN Card", "mandatory": false, "priority": 3, "obtainable_from": "Income Tax Office / NSDL"},
+    {"document": "Address Proof", "mandatory": true, "priority": 4, "obtainable_from": "Any government document"}
+  ],
+
+  "prerequisites": [],
+  "ambiguity_flags": []
+}

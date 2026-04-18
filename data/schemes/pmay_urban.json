@@ -1,0 +1,114 @@
+{
+  "scheme_id": "pmay_urban",
+  "scheme_name": "Pradhan Mantri Awaas Yojana — Urban (PMAY-U)",
+  "ministry": "Ministry of Housing & Urban Affairs",
+  "benefit": "Subsidy on home loan interest: EWS/LIG — 6.5% interest subsidy on ₹6L loan; MIG-I — 4% on ₹9L; MIG-II — 3% on ₹12L. OR direct construction grant for EWS (₹1.5L) under BLC component",
+  "application_portal": "pmaymis.gov.in",
+  "source_urls": [
+    "https://pmaymis.gov.in",
+    "https://mohua.gov.in/upload/uploadfiles/files/PMAY_U_Guidelines.pdf"
+  ],
+  "last_verified": "2026-04-11",
+  "source_confidence": 0.87,
+  "notes": "PMAY-U has 4 components: CLSS (credit linked subsidy), AHP (affordable housing), BLC (beneficiary-led), ISS (in-situ slum redevelopment). Income slab determines component eligibility.",
+
+  "eligibility_rules": {
+    "operator": "AND",
+    "conditions": [
+      {
+        "rule_id": "pmayu_r1",
+        "field": "residence_type",
+        "operator": "IN",
+        "value": ["urban", "peri-urban"],
+        "confidence": 0.90,
+        "source": "PMAY-U applies to all statutory towns, notified planning areas",
+        "ambiguity_flag": "AMBIGUITY-002",
+        "ambiguity_note": "Peri-urban areas and census towns may overlap with PMAY-G jurisdiction"
+      },
+      {
+        "rule_id": "pmayu_r2",
+        "description": "Must not own a pucca house anywhere in India (family level)",
+        "operator": "NOT",
+        "conditions": [
+          {
+            "rule_id": "pmayu_r2a",
+            "field": "owns_pucca_house_anywhere",
+            "operator": "EQ",
+            "value": true,
+            "confidence": 0.92,
+            "source": "PMAY-U eligibility — 'beneficiary family should not own a pucca house in their name anywhere in India'"
+          }
+        ]
+      },
+      {
+        "rule_id": "pmayu_r3",
+        "description": "Income category determines subsidy component",
+        "operator": "OR",
+        "conditions": [
+          {
+            "rule_id": "pmayu_ewsliq",
+            "description": "EWS/LIG — annual household income ≤ ₹6 lakh",
+            "field": "annual_income_household",
+            "operator": "LTE",
+            "value": 600000,
+            "confidence": 0.92,
+            "source": "PMAY-U EWS: ≤₹3L/year; LIG: ₹3L–₹6L/year. CLSS interest subsidy of 6.5% on ₹6L"
+          },
+          {
+            "rule_id": "pmayu_mig1",
+            "description": "MIG-I — annual household income ₹6L–₹12L",
+            "operator": "AND",
+            "conditions": [
+              {
+                "field": "annual_income_household",
+                "operator": "GT",
+                "value": 600000,
+                "confidence": 0.90,
+                "source": "PMAY-U MIG-I income band"
+              },
+              {
+                "field": "annual_income_household",
+                "operator": "LTE",
+                "value": 1200000,
+                "confidence": 0.90,
+                "source": "PMAY-U MIG-I income band upper limit"
+              }
+            ]
+          },
+          {
+            "rule_id": "pmayu_mig2",
+            "description": "MIG-II — annual household income ₹12L–₹18L",
+            "operator": "AND",
+            "conditions": [
+              {
+                "field": "annual_income_household",
+                "operator": "GT",
+                "value": 1200000,
+                "confidence": 0.90,
+                "source": "PMAY-U MIG-II income band"
+              },
+              {
+                "field": "annual_income_household",
+                "operator": "LTE",
+                "value": 1800000,
+                "confidence": 0.90,
+                "source": "PMAY-U MIG-II income band upper limit"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+
+  "required_documents": [
+    {"document": "Aadhaar Card", "mandatory": true, "priority": 1, "obtainable_from": "Aadhaar Enrollment Centre"},
+    {"document": "Income Certificate", "mandatory": true, "priority": 2, "obtainable_from": "Tehsildar / Revenue Department"},
+    {"document": "Affidavit — no pucca house owned anywhere in India", "mandatory": true, "priority": 3, "obtainable_from": "Notary / SDM Office"},
+    {"document": "Bank Account", "mandatory": true, "priority": 4, "obtainable_from": "Any bank"},
+    {"document": "Property / Allotment Letter (for BLC component)", "mandatory": false, "priority": 5, "obtainable_from": "ULB / Municipality"}
+  ],
+
+  "prerequisites": ["pm_jan_dhan"],
+  "ambiguity_flags": ["AMBIGUITY-002"]
+}

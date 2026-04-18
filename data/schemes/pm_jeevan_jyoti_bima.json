@@ -1,0 +1,54 @@
+{
+  "scheme_id": "pm_jeevan_jyoti_bima",
+  "scheme_name": "Pradhan Mantri Jeevan Jyoti Bima Yojana (PMJJBY)",
+  "ministry": "Ministry of Finance / Department of Financial Services",
+  "benefit": "₹2 lakh life insurance cover on death (any cause). Annual premium: ₹436/year (auto-debited from bank account).",
+  "application_portal": "Through bank branches / Jan Suraksha portal",
+  "source_urls": [
+    "https://jansuraksha.gov.in/Forms-PMJJBY.aspx",
+    "https://financialservices.gov.in/insurance-divisions/Government-Sponsored-Socially-Oriented-Insurance-Schemes/Pradhan-Mantri-Jeevan-Jyoti-Bima-Yojana(PMJJBY)"
+  ],
+  "last_verified": "2026-04-11",
+  "source_confidence": 0.93,
+  "notes": "One of the simplest central schemes. Very broad eligibility. Often bundled with PMJDY account. Auto-renewal via bank debit on 1 June each year.",
+
+  "eligibility_rules": {
+    "operator": "AND",
+    "conditions": [
+      {
+        "rule_id": "pmjjby_r1",
+        "field": "age",
+        "operator": "BETWEEN",
+        "value": [18, 50],
+        "confidence": 0.98,
+        "source": "PMJJBY scheme document — age 18–50 years at time of enrollment. Cover continues till 55."
+      },
+      {
+        "rule_id": "pmjjby_r2",
+        "field": "has_bank_account",
+        "operator": "EQ",
+        "value": true,
+        "confidence": 0.98,
+        "source": "PMJJBY — bank account mandatory for premium auto-debit"
+      },
+      {
+        "rule_id": "pmjjby_r3",
+        "description": "Account must have sufficient balance for premium debit",
+        "field": "has_bank_account",
+        "operator": "EQ",
+        "value": true,
+        "confidence": 0.85,
+        "source": "PMJJBY — premium ₹436/year auto-debited; lapse if insufficient balance",
+        "ambiguity_note": "Assumes basic bank balance available — actual lapse risk not assessed at eligibility stage"
+      }
+    ]
+  },
+
+  "required_documents": [
+    {"document": "Bank account with auto-debit consent", "mandatory": true, "priority": 1, "obtainable_from": "Any bank"},
+    {"document": "Aadhaar / Identity Proof", "mandatory": true, "priority": 2, "obtainable_from": "Aadhaar Enrollment Centre"}
+  ],
+
+  "prerequisites": ["pm_jan_dhan"],
+  "ambiguity_flags": []
+}

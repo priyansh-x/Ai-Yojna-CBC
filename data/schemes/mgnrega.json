@@ -1,0 +1,98 @@
+{
+  "scheme_id": "mgnrega",
+  "scheme_name": "Mahatma Gandhi National Rural Employment Guarantee Act",
+  "ministry": "Ministry of Rural Development",
+  "benefit": "100 days of guaranteed unskilled wage employment per household per year. Wage rate varies by state (₹200–₹350/day approx).",
+  "application_portal": "nrega.nic.in",
+  "source_urls": [
+    "https://nrega.nic.in/netnrega/home.aspx",
+    "https://rural.gov.in/sites/default/files/mgnarega/MGNREGA_Act.pdf"
+  ],
+  "last_verified": "2026-04-11",
+  "source_confidence": 0.92,
+  "notes": "MGNREGA is a demand-driven scheme. Any adult in a rural household can apply. The Act itself is the primary source — very explicit.",
+
+  "eligibility_rules": {
+    "operator": "AND",
+    "conditions": [
+      {
+        "rule_id": "mgn_r1",
+        "field": "residence_type",
+        "operator": "EQ",
+        "value": "rural",
+        "confidence": 0.95,
+        "source": "MGNREGA Section 2(f) — 'household means the members of a family residing together and those members who normally reside together and include adult members'",
+        "ambiguity_flag": "AMBIGUITY-013",
+        "ambiguity_note": "Census towns reclassified as urban may still have rural registrations. Peri-urban areas disputed."
+      },
+      {
+        "rule_id": "mgn_r2",
+        "field": "age",
+        "operator": "GTE",
+        "value": 18,
+        "confidence": 0.98,
+        "source": "MGNREGA Section 2(a) — 'adult means a person who has completed his eighteenth year of age'"
+      },
+      {
+        "rule_id": "mgn_r3",
+        "description": "Must be willing to do unskilled manual work",
+        "operator": "OR",
+        "conditions": [
+          {
+            "field": "willing_to_do_manual_work",
+            "operator": "EQ",
+            "value": true,
+            "confidence": 0.95,
+            "source": "MGNREGA Section 3 — applicant must be 'willing to do unskilled manual work'"
+          },
+          {
+            "field": "willing_to_do_manual_work",
+            "operator": "IS_NULL",
+            "value": null,
+            "confidence": 0.80,
+            "source": "Assumed willing — any adult rural resident requesting MGNREGA work is by definition willing"
+          }
+        ]
+      },
+      {
+        "rule_id": "mgn_r4",
+        "description": "Job Card — first-time applicants apply simultaneously",
+        "operator": "OR",
+        "conditions": [
+          {
+            "field": "has_job_card_or_applying",
+            "operator": "EQ",
+            "value": true,
+            "confidence": 0.90,
+            "source": "MGNREGA Section 4 — registration of household"
+          },
+          {
+            "field": "has_job_card_or_applying",
+            "operator": "IS_NULL",
+            "value": null,
+            "confidence": 0.80,
+            "source": "First-time applicants apply for Job Card simultaneously — not a blocker at eligibility stage"
+          }
+        ]
+      }
+    ]
+  },
+
+  "exclusions": [
+    {
+      "exclusion_id": "mgn_excl_1",
+      "description": "Urban residents are not eligible",
+      "source": "MGNREGA applies only to rural India as defined by the Gram Panchayat jurisdiction"
+    }
+  ],
+
+  "required_documents": [
+    {"document": "Aadhaar Card", "mandatory": true, "priority": 1, "obtainable_from": "Aadhaar Enrollment Centre"},
+    {"document": "Ration Card / Any Residence Proof", "mandatory": true, "priority": 2, "obtainable_from": "Tehsildar / PDS shop"},
+    {"document": "Passport-size photograph", "mandatory": true, "priority": 3, "obtainable_from": "Self"},
+    {"document": "Bank/Post Office Account (for wage payment)", "mandatory": true, "priority": 4, "obtainable_from": "Any bank / PMJDY"}
+  ],
+
+  "prerequisites": [],
+  "ambiguity_flags": ["AMBIGUITY-008", "AMBIGUITY-013", "AMBIGUITY-001"]
+}

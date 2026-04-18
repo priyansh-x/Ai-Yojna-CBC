@@ -1,0 +1,43 @@
+{
+  "scheme_id": "pm_suraksha_bima",
+  "scheme_name": "Pradhan Mantri Suraksha Bima Yojana (PMSBY)",
+  "ministry": "Ministry of Finance / Department of Financial Services",
+  "benefit": "₹2 lakh on accidental death or total permanent disability. ₹1 lakh on partial permanent disability. Annual premium: ₹20/year.",
+  "application_portal": "jansuraksha.gov.in / bank branches",
+  "source_urls": [
+    "https://jansuraksha.gov.in/Forms-PMSBY.aspx",
+    "https://financialservices.gov.in/insurance-divisions/Government-Sponsored-Socially-Oriented-Insurance-Schemes/Pradhan-Mantri-Suraksha-Bima-Yojana(PMSBY)"
+  ],
+  "last_verified": "2026-04-11",
+  "source_confidence": 0.95,
+  "notes": "Accidental insurance only — death due to illness not covered. Extremely affordable at ₹20/year. Broadest eligibility of all central insurance schemes.",
+
+  "eligibility_rules": {
+    "operator": "AND",
+    "conditions": [
+      {
+        "rule_id": "pmsby_r1",
+        "field": "age",
+        "operator": "BETWEEN",
+        "value": [18, 70],
+        "confidence": 0.99,
+        "source": "PMSBY scheme document — age 18–70 years"
+      },
+      {
+        "rule_id": "pmsby_r2",
+        "field": "has_bank_account",
+        "operator": "EQ",
+        "value": true,
+        "confidence": 0.99,
+        "source": "PMSBY — bank account mandatory"
+      }
+    ]
+  },
+
+  "required_documents": [
+    {"document": "Bank account with auto-debit consent form", "mandatory": true, "priority": 1, "obtainable_from": "Bank branch"}
+  ],
+
+  "prerequisites": ["pm_jan_dhan"],
+  "ambiguity_flags": []
+}

@@ -1,0 +1,111 @@
+{
+  "scheme_id": "pm_ujjwala",
+  "scheme_name": "Pradhan Mantri Ujjwala Yojana (PMUY)",
+  "ministry": "Ministry of Petroleum & Natural Gas",
+  "benefit": "Free LPG connection (cylinder + regulator + pipe) + first refill free under PMUY 2.0",
+  "application_portal": "pmuy.gov.in",
+  "source_urls": [
+    "https://www.pmuy.gov.in",
+    "https://petroleum.gov.in/sites/default/files/pmuy2.0guidelines.pdf"
+  ],
+  "last_verified": "2026-04-11",
+  "source_confidence": 0.83,
+  "notes": "PMUY 1.0 (2016) targeted BPL women. PMUY 2.0 (2021) expanded to 'poor household' — BPL criteria relaxed but 'poor' remains vague. Migrant workers with no fixed address now included in 2.0.",
+
+  "eligibility_rules": {
+    "operator": "AND",
+    "conditions": [
+      {
+        "rule_id": "pmuy_r1",
+        "field": "gender",
+        "operator": "EQ",
+        "value": "female",
+        "confidence": 0.98,
+        "source": "PMUY Guidelines — connection issued in name of adult woman of household"
+      },
+      {
+        "rule_id": "pmuy_r2",
+        "field": "age",
+        "operator": "GTE",
+        "value": 18,
+        "confidence": 0.97,
+        "source": "PMUY Guidelines — adult woman"
+      },
+      {
+        "rule_id": "pmuy_r3",
+        "description": "Must belong to a poor/BPL household",
+        "operator": "OR",
+        "conditions": [
+          {
+            "rule_id": "pmuy_r3a",
+            "field": "ration_card_type",
+            "operator": "IN",
+            "value": ["AAY", "PHH"],
+            "confidence": 0.88,
+            "source": "PMUY 2.0 — NFSA cardholders eligible"
+          },
+          {
+            "rule_id": "pmuy_r3b",
+            "field": "is_secc_listed",
+            "operator": "EQ",
+            "value": true,
+            "confidence": 0.80,
+            "source": "PMUY 1.0 — SECC 2011 BPL list"
+          },
+          {
+            "rule_id": "pmuy_r3c",
+            "field": "caste_category",
+            "operator": "IN",
+            "value": ["SC", "ST"],
+            "confidence": 0.82,
+            "source": "PMUY — SC/ST households automatically considered under BPL for scheme"
+          },
+          {
+            "rule_id": "pmuy_r3d",
+            "field": "is_pmay_g_beneficiary",
+            "operator": "EQ",
+            "value": true,
+            "confidence": 0.85,
+            "source": "PMUY convergence with PMAY-G"
+          },
+          {
+            "rule_id": "pmuy_r3e",
+            "field": "self_declaration_poor",
+            "operator": "EQ",
+            "value": true,
+            "confidence": 0.60,
+            "source": "PMUY 2.0 — self-declaration of being poor accepted if not covered by above categories",
+            "ambiguity_flag": "AMBIGUITY-005",
+            "ambiguity_note": "'Poor' is not defined in PMUY 2.0 guidelines. Oil company field staff exercise discretion."
+          }
+        ]
+      },
+      {
+        "rule_id": "pmuy_r4",
+        "description": "Must NOT already have an LPG connection in household",
+        "operator": "NOT",
+        "conditions": [
+          {
+            "rule_id": "pmuy_r4a",
+            "field": "has_lpg_connection",
+            "operator": "EQ",
+            "value": true,
+            "confidence": 0.90,
+            "source": "PMUY Guidelines — no LPG connection should exist in the household",
+            "ambiguity_note": "Connection registered at previous address in different city — counted as 'existing' by oil companies. See adversarial case 7."
+          }
+        ]
+      }
+    ]
+  },
+
+  "required_documents": [
+    {"document": "Aadhaar Card", "mandatory": true, "priority": 1, "obtainable_from": "Aadhaar Enrollment Centre"},
+    {"document": "Ration Card (PHH/AAY) OR BPL certificate", "mandatory": true, "priority": 2, "obtainable_from": "PDS shop / Block Development Office"},
+    {"document": "Bank Account (in woman's name)", "mandatory": true, "priority": 3, "obtainable_from": "Any bank / PMJDY"},
+    {"document": "Address proof (for migrants: self-declaration acceptable under 2.0)", "mandatory": true, "priority": 4, "obtainable_from": "Any government document / self-declaration"}
+  ],
+
+  "prerequisites": ["pm_jan_dhan"],
+  "ambiguity_flags": ["AMBIGUITY-005"]
+}

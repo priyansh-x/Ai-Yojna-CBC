@@ -1,0 +1,62 @@
+{
+  "scheme_id": "pm_jan_dhan",
+  "scheme_name": "Pradhan Mantri Jan Dhan Yojana (PMJDY)",
+  "ministry": "Ministry of Finance / Department of Financial Services",
+  "benefit": "Zero-balance savings account + RuPay debit card + ₹2L accidental death insurance + ₹30,000 life cover + ₹10,000 overdraft facility (after 6 months of satisfactory operation)",
+  "application_portal": "pmjdy.gov.in",
+  "source_urls": [
+    "https://pmjdy.gov.in",
+    "https://financialservices.gov.in/financial-inclusion/pradhan-mantri-jan-dhan-yojana"
+  ],
+  "last_verified": "2026-04-11",
+  "source_confidence": 0.95,
+  "notes": "PMJDY is the simplest and broadest scheme. Almost universal eligibility. Primary role in the system: prerequisite for nearly every other scheme. Very few exclusions.",
+
+  "eligibility_rules": {
+    "operator": "AND",
+    "conditions": [
+      {
+        "rule_id": "pmjdy_r1",
+        "field": "nationality",
+        "operator": "EQ",
+        "value": "indian",
+        "confidence": 0.99,
+        "source": "PMJDY — any Indian citizen"
+      },
+      {
+        "rule_id": "pmjdy_r2",
+        "field": "age",
+        "operator": "GTE",
+        "value": 10,
+        "confidence": 0.95,
+        "source": "PMJDY — minors above 10 years can open account with guardian",
+        "ambiguity_note": "Minors 10+ can open with guardian; below 10 requires guardian-operated account"
+      },
+      {
+        "rule_id": "pmjdy_r3",
+        "description": "Must not already hold a PMJDY account",
+        "operator": "NOT",
+        "conditions": [
+          {
+            "rule_id": "pmjdy_r3a",
+            "field": "has_pmjdy_account",
+            "operator": "EQ",
+            "value": true,
+            "confidence": 0.92,
+            "source": "PMJDY — one account per household",
+            "ambiguity_flag": "AMBIGUITY-010",
+            "ambiguity_note": "Existing zero-balance savings accounts at other banks may already provide PMJDY benefits. The overdraft facility and insurance rider may not apply to pre-existing non-PMJDY zero-balance accounts."
+          }
+        ]
+      }
+    ]
+  },
+
+  "required_documents": [
+    {"document": "Aadhaar Card (preferred) OR Voter ID / Driving Licence / NREGA Job Card", "mandatory": true, "priority": 1, "obtainable_from": "Aadhaar Enrollment Centre or state authorities"},
+    {"document": "Passport-size photograph", "mandatory": true, "priority": 2, "obtainable_from": "Self"}
+  ],
+
+  "prerequisites": [],
+  "ambiguity_flags": ["AMBIGUITY-010"]
+}

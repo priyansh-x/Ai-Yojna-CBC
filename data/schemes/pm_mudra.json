@@ -1,0 +1,76 @@
+{
+  "scheme_id": "pm_mudra",
+  "scheme_name": "Pradhan Mantri MUDRA Yojana (PMMY)",
+  "ministry": "Ministry of Finance / MUDRA",
+  "benefit": "Collateral-free business loans: Shishu (up to ₹50,000), Kishore (₹50,001–₹5L), Tarun (₹5L–₹10L) at subsidised rates. No processing fee under Shishu category.",
+  "application_portal": "mudra.org.in",
+  "source_urls": [
+    "https://www.mudra.org.in",
+    "https://financialservices.gov.in/beta/en/Mudra"
+  ],
+  "last_verified": "2026-04-11",
+  "source_confidence": 0.85,
+  "notes": "MUDRA is NOT a direct government disbursement — it is a refinancing scheme. Loans are given by banks/MFIs/NBFCs. Each lender has its own credit assessment. The scheme eligibility sets the minimum bar.",
+
+  "eligibility_rules": {
+    "operator": "AND",
+    "conditions": [
+      {
+        "rule_id": "mudra_r1",
+        "description": "Must be a non-farm micro/small enterprise",
+        "field": "business_type",
+        "operator": "IN",
+        "value": [
+          "manufacturing",
+          "trading",
+          "services",
+          "allied_agricultural_activities"
+        ],
+        "confidence": 0.85,
+        "source": "MUDRA Guidelines — non-farm income generating activities",
+        "ambiguity_flag": "AMBIGUITY-009",
+        "ambiguity_note": "'Allied agricultural' includes poultry, dairy, fisheries, bee-keeping — but pure crop farming is excluded. A farmer with a grain shop qualifies for the shop business, not the farm."
+      },
+      {
+        "rule_id": "mudra_r2",
+        "description": "Must NOT be a wilful defaulter",
+        "operator": "NOT",
+        "conditions": [
+          {
+            "rule_id": "mudra_excl_1",
+            "field": "is_wilful_defaulter",
+            "operator": "EQ",
+            "value": true,
+            "confidence": 0.93,
+            "source": "MUDRA Guidelines — wilful defaulters to banks/financial institutions excluded"
+          }
+        ]
+      },
+      {
+        "rule_id": "mudra_r3",
+        "description": "Business loan requirement must fall within MUDRA limits",
+        "field": "loan_amount_required",
+        "operator": "LTE",
+        "value": 1000000,
+        "confidence": 0.92,
+        "source": "MUDRA — maximum loan under Tarun category ₹10 lakh"
+      }
+    ]
+  },
+
+  "loan_categories": [
+    {"category": "Shishu", "max_amount": 50000, "target": "startups, very early stage"},
+    {"category": "Kishore", "max_amount": 500000, "target": "established businesses needing growth capital"},
+    {"category": "Tarun", "max_amount": 1000000, "target": "larger small enterprises"}
+  ],
+
+  "required_documents": [
+    {"document": "Aadhaar Card / Identity Proof", "mandatory": true, "priority": 1, "obtainable_from": "Aadhaar Enrollment Centre"},
+    {"document": "Business proof / trade licence / GST registration", "mandatory": false, "priority": 2, "obtainable_from": "Municipal corporation / GST portal"},
+    {"document": "Bank account statements (last 6 months, if existing business)", "mandatory": false, "priority": 3, "obtainable_from": "Bank"},
+    {"document": "Caste certificate (for priority processing for SC/ST/OBC)", "mandatory": false, "priority": 4, "obtainable_from": "Tehsildar / Revenue Dept"}
+  ],
+
+  "prerequisites": ["pm_jan_dhan"],
+  "ambiguity_flags": ["AMBIGUITY-009"]
+}

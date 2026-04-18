@@ -1,0 +1,73 @@
+{
+  "scheme_id": "pm_fasal_bima",
+  "scheme_name": "Pradhan Mantri Fasal Bima Yojana (PMFBY)",
+  "ministry": "Ministry of Agriculture & Farmers' Welfare",
+  "benefit": "Crop insurance at heavily subsidised premiums: Kharif crops — 2% of sum insured; Rabi crops — 1.5%; Annual commercial/horticultural crops — 5%. Claim on crop loss due to natural calamities.",
+  "application_portal": "pmfby.gov.in",
+  "source_urls": [
+    "https://pmfby.gov.in",
+    "https://agricoop.gov.in/sites/default/files/PMFBY_OperationalGuidelines_2020.pdf"
+  ],
+  "last_verified": "2026-04-11",
+  "source_confidence": 0.87,
+  "notes": "PMFBY allows both loanee (compulsory via KCC) and non-loanee (voluntary) enrollment. Sharecroppers and tenant farmers ARE explicitly included — unlike PM Kisan. This is a critical distinction.",
+
+  "eligibility_rules": {
+    "operator": "AND",
+    "conditions": [
+      {
+        "rule_id": "pmfby_r1",
+        "description": "Must be a farmer — owned, leased, or sharecrop land",
+        "field": "occupation",
+        "operator": "IN",
+        "value": ["farmer", "cultivator", "sharecropper", "tenant_farmer", "agricultural_labourer_with_crop"],
+        "confidence": 0.92,
+        "source": "PMFBY Operational Guidelines 2020 — 'all farmers including sharecroppers and tenant farmers growing notified crops'"
+      },
+      {
+        "rule_id": "pmfby_r2",
+        "description": "Must be growing a notified crop in the season",
+        "field": "grows_notified_crop",
+        "operator": "EQ",
+        "value": true,
+        "confidence": 0.85,
+        "source": "PMFBY — only notified crops per state/district are insurable. Non-notified crops not covered.",
+        "ambiguity_note": "Notified crop list changes each season and varies by district. Must verify with local agriculture office."
+      },
+      {
+        "rule_id": "pmfby_r3",
+        "description": "Enrollment: Mandatory if Kisan Credit Card (KCC) loan taken, or voluntary if non-loanee",
+        "operator": "OR",
+        "conditions": [
+          {
+            "rule_id": "pmfby_r3a",
+            "field": "has_kcc_crop_loan",
+            "operator": "EQ",
+            "value": true,
+            "confidence": 0.92,
+            "source": "PMFBY — loanee farmers auto-enrolled via KCC loan"
+          },
+          {
+            "rule_id": "pmfby_r3b",
+            "description": "Voluntary enrollment — non-loanee farmer",
+            "field": "voluntary_enrollment_pmfby",
+            "operator": "EQ",
+            "value": true,
+            "confidence": 0.85,
+            "source": "PMFBY — non-loanee farmers may voluntarily enroll before cut-off date"
+          }
+        ]
+      }
+    ]
+  },
+
+  "required_documents": [
+    {"document": "Aadhaar Card", "mandatory": true, "priority": 1, "obtainable_from": "Aadhaar Enrollment Centre"},
+    {"document": "Land records / Khasra (for own land) OR lease/sharecrop agreement", "mandatory": true, "priority": 2, "obtainable_from": "Tehsildar / Revenue Dept"},
+    {"document": "Bank Account / KCC passbook", "mandatory": true, "priority": 3, "obtainable_from": "Bank"},
+    {"document": "Sowing certificate (from Patwari/Revenue officer)", "mandatory": true, "priority": 4, "obtainable_from": "Local Agriculture Department"}
+  ],
+
+  "prerequisites": ["pm_jan_dhan"],
+  "ambiguity_flags": ["AMBIGUITY-001"]
+}
