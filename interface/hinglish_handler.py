@@ -263,10 +263,17 @@ def _demo_extract(text: str) -> dict:
     text_lower = text.lower()
     fields = {}
 
-    # Age
-    age_match = re.search(r"(\d{1,3})\s*(?:saal|sal|year|years|varsh|वर्ष)", text_lower)
+    # Age — must be preceded by umar/age/meri/aapki or be a standalone 2-3 digit number
+    # Exclude: "2 saal se" (duration), "3 saal pehle" (past event)
+    age_match = re.search(
+        r"(?:umar|age|meri umar|main|hoon|hun|hu)\s*(?:hai|hain|he|h)?\s*(\d{1,3})\s*(?:saal|sal|year|years|varsh|वर्ष)"
+        r"|(\d{1,3})\s*(?:saal|sal|year|years)\s*(?:ka|ki|ke|hoon|hun)\b",
+        text_lower
+    )
     if age_match:
-        fields["age"] = int(age_match.group(1))
+        val = int(age_match.group(1) or age_match.group(2))
+        if 5 <= val <= 110:   # sanity check
+            fields["age"] = val
 
     # Nationality default
     fields["nationality"] = "indian"

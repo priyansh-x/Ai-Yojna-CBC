@@ -31,6 +31,8 @@ import sys
 import json
 import re
 import textwrap
+import time
+import threading
 from datetime import datetime
 
 # Add project root to path
@@ -49,36 +51,84 @@ from interface.contradiction_detector import detect_contradictions, format_contr
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 
-# ── Terminal color helpers (no external deps) ─────────────────────────────────
+# ── Terminal color + style helpers ────────────────────────────────────────────
+
+RESET  = "\033[0m"
+BOLD   = "\033[1m"
+DIM    = "\033[2m"
+ITALIC = "\033[3m"
+
+# Foreground colors
+BLACK   = "\033[30m"
+RED     = "\033[91m"
+GREEN   = "\033[92m"
+YELLOW  = "\033[93m"
+BLUE    = "\033[94m"
+MAGENTA = "\033[95m"
+CYAN    = "\033[96m"
+WHITE   = "\033[97m"
+
+# Background colors
+BG_CYAN    = "\033[46m"
+BG_GREEN   = "\033[42m"
+BG_YELLOW  = "\033[43m"
+BG_RED     = "\033[41m"
+BG_BLUE    = "\033[44m"
 
 def _c(text: str, code: str) -> str:
-    """Wrap text in ANSI color code."""
     codes = {
-        "cyan":    "\033[96m",
-        "green":   "\033[92m",
-        "yellow":  "\033[93m",
-        "red":     "\033[91m",
-        "bold":    "\033[1m",
-        "dim":     "\033[2m",
-        "reset":   "\033[0m",
+        "cyan":    CYAN,
+        "green":   GREEN,
+        "yellow":  YELLOW,
+        "red":     RED,
+        "bold":    BOLD,
+        "dim":     DIM,
+        "magenta": MAGENTA,
+        "white":   WHITE,
+        "reset":   RESET,
     }
-    return f"{codes.get(code, '')}{text}{codes['reset']}"
+    return f"{codes.get(code, '')}{text}{RESET}"
 
+
+# ── Logo & Banner ─────────────────────────────────────────────────────────────
+
+LOGO = f"""
+{CYAN}{BOLD}
+  ██╗   ██╗ ██████╗      ██╗███╗   ██╗ █████╗       █████╗ ██╗
+  ╚██╗ ██╔╝██╔═══██╗     ██║████╗  ██║██╔══██╗     ██╔══██╗██║
+   ╚████╔╝ ██║   ██║     ██║██╔██╗ ██║███████║     ███████║██║
+    ╚██╔╝  ██║   ██║██   ██║██║╚██╗██║██╔══██║     ██╔══██║██║
+     ██║   ╚██████╔╝╚█████╔╝██║ ╚████║██║  ██║  ██╗██║  ██║██║
+     ╚═╝    ╚═════╝  ╚════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝
+{RESET}{DIM}
+        Aapki Yojana, Aapka Haq  •  Your Scheme, Your Right
+        India's Welfare Scheme Eligibility Engine
+{RESET}"""
 
 def _print_banner():
-    print("\n" + "═" * 62)
-    print(_c("  SARKARI YOJANA MATCHER — Welfare Scheme Eligibility Engine", "cyan"))
-    print(_c("  Aapki Yojana, Aapka Haq. (Your scheme, your right.)", "dim"))
-    print("═" * 62)
+    os.system("clear")
+    print(LOGO)
+    print(f"  {DIM}{'─' * 66}{RESET}")
     print()
 
 
-def _print_divider():
-    print(_c("  ─" * 31, "dim"))
+def _print_divider(label: str = ""):
+    if label:
+        pad = (60 - len(label) - 2) // 2
+        print(f"\n  {DIM}{'─' * pad}{RESET} {CYAN}{label}{RESET} {DIM}{'─' * pad}{RESET}\n")
+    else:
+        print(f"\n  {DIM}{'─' * 64}{RESET}\n")
 
 
-def _wrap(text: str, width: int = 58, indent: str = "  ") -> str:
-    """Wrap text for terminal display."""
+def _section(title: str, color: str = CYAN):
+    width = 64
+    bar = "═" * width
+    print(f"\n  {color}{BOLD}{bar}{RESET}")
+    print(f"  {color}{BOLD}  {title}{RESET}")
+    print(f"  {color}{BOLD}{bar}{RESET}\n")
+
+
+def _wrap(text: str, width: int = 60, indent: str = "  ") -> str:
     lines = []
     for para in text.split("\n"):
         if para.strip():
@@ -89,25 +139,72 @@ def _wrap(text: str, width: int = 58, indent: str = "  ") -> str:
     return "\n".join(lines)
 
 
-def _speak(text: str, color: str = ""):
-    """Print a system message."""
-    if color:
-        print(_c(_wrap(text), color))
-    else:
-        print(_wrap(text))
+def _speak(text: str, color: str = "", prefix: str = ""):
+    """Print a system message with optional bot prefix."""
+    icon = f"{CYAN}◈{RESET}  " if not prefix else prefix
+    color_map = {"cyan": CYAN, "green": GREEN, "yellow": YELLOW,
+                 "red": RED, "dim": DIM, "magenta": MAGENTA}
+    col = color_map.get(color, "")
+    lines = text.split("\n")
+    for i, line in enumerate(lines):
+        if line.strip():
+            wrapped = textwrap.wrap(line, width=60)
+            for j, wl in enumerate(wrapped):
+                lead = icon if (i == 0 and j == 0) else "   "
+                print(f"  {lead}{col}{wl}{RESET}")
+        else:
+            print()
     print()
 
 
-def _ask(prompt: str) -> str:
-    """Get user input."""
-    print(_c(f"  ❯ {prompt}", "cyan"))
+def _ask(prompt: str, hint: str = "") -> str:
+    """Styled user input prompt."""
+    if hint:
+        print(f"  {DIM}{hint}{RESET}")
+    print(f"  {CYAN}╭─ {prompt}{RESET}")
+    print(f"  {CYAN}╰❯{RESET} ", end="")
     try:
-        response = input("    > ").strip()
+        response = input("").strip()
         print()
         return response
     except (KeyboardInterrupt, EOFError):
-        print("\n\n  Alvida! (Goodbye!)\n")
+        print(f"\n\n  {YELLOW}Alvida! Phir milenge.{RESET}\n")
         sys.exit(0)
+
+
+# ── Spinner ───────────────────────────────────────────────────────────────────
+
+class Spinner:
+    """Simple single-threaded spinner — no background threads that corrupt terminal input."""
+
+    def __init__(self, message: str):
+        self.message = message
+
+    def __enter__(self):
+        print(f"  {CYAN}◌{RESET}  {DIM}{self.message}...{RESET}", flush=True)
+        return self
+
+    def __exit__(self, *_):
+        # Move up one line and replace with done tick
+        print(f"\033[1A\033[2K  {GREEN}✓{RESET}  {DIM}{self.message}{RESET}")
+
+
+# ── Progress bar ──────────────────────────────────────────────────────────────
+
+def _progress_bar(pct: int, label: str = "") -> str:
+    filled = int(pct / 5)   # out of 20 blocks
+    bar = f"{GREEN}{'█' * filled}{DIM}{'░' * (20 - filled)}{RESET}"
+    return f"  [{bar}] {CYAN}{pct}%{RESET}  {DIM}{label}{RESET}"
+
+
+# ── Typing effect ─────────────────────────────────────────────────────────────
+
+def _typewrite(text: str, delay: float = 0.018):
+    """Print text with a subtle typewriter effect."""
+    for char in text:
+        print(char, end="", flush=True)
+        time.sleep(delay)
+    print()
 
 
 # ── Session logger ─────────────────────────────────────────────────────────────
@@ -134,76 +231,92 @@ class SessionLog:
 
 # ── Results rendering ─────────────────────────────────────────────────────────
 
-STATUS_LABELS = {
-    "FULLY_ELIGIBLE":  ("✓", "green",  "ELIGIBLE hain"),
-    "LIKELY_ELIGIBLE": ("~", "yellow", "SHAYAD eligible hain"),
-    "ALMOST_ELIGIBLE": ("◌", "yellow", "LAGBHAG eligible hain — ek gap hai"),
-    "UNCERTAIN":       ("?", "cyan",   "PATA NAHI — aur jaankari chahiye"),
-    "INELIGIBLE":      ("✗", "red",    "ELIGIBLE NAHI hain"),
+STATUS_CONFIG = {
+    "FULLY_ELIGIBLE":  {"icon": "✦", "color": GREEN,  "bg": "",        "label": "ELIGIBLE"},
+    "LIKELY_ELIGIBLE": {"icon": "◉", "color": CYAN,   "bg": "",        "label": "LIKELY ELIGIBLE"},
+    "ALMOST_ELIGIBLE": {"icon": "◎", "color": YELLOW, "bg": "",        "label": "1 GAP BAAKI"},
+    "UNCERTAIN":       {"icon": "◌", "color": DIM,    "bg": "",        "label": "AUR JAANKARI CHAHIYE"},
+    "INELIGIBLE":      {"icon": "✗", "color": RED,    "bg": "",        "label": "ELIGIBLE NAHI"},
 }
+
+
+def _conf_bar(confidence: float) -> str:
+    filled = int(confidence * 12)
+    bar = f"{GREEN}{'█' * filled}{DIM}{'░' * (12 - filled)}{RESET}"
+    pct = f"{BOLD}{int(confidence * 100)}%{RESET}"
+    return f"[{bar}] {pct}"
 
 
 def _render_results_hinglish(results: list[MatchResult], profile: dict) -> None:
     """Render match results in Hinglish."""
+    import json as _json
 
     eligible   = [r for r in results if r.status in ("FULLY_ELIGIBLE", "LIKELY_ELIGIBLE")]
     almost     = [r for r in results if r.status == "ALMOST_ELIGIBLE"]
     uncertain  = [r for r in results if r.status == "UNCERTAIN"]
     ineligible = [r for r in results if r.status == "INELIGIBLE"]
 
-    print("\n" + "═" * 62)
-    print(_c("  AAPKE LIYE YOJANAEN (Schemes for you)", "bold"))
-    print("═" * 62)
+    _section("AAPKE LIYE YOJANAEN  ·  Your Eligible Schemes", GREEN)
 
-    # Eligible schemes
+    # ── Eligible ──────────────────────────────────────────────────────────────
     if eligible:
-        print(_c("\n  ✓ AAPKE LIYE CONFIRMED YOJANAEN:", "green"))
+        print(f"  {GREEN}{BOLD}✦  AAPKO MILNE WALI YOJANAEN{RESET}\n")
         for r in eligible:
-            icon, color, label = STATUS_LABELS[r.status]
-            conf_bar = "█" * int(r.confidence * 10) + "░" * (10 - int(r.confidence * 10))
-            print(f"\n  {_c(icon + ' ' + r.scheme_name, color)}")
-            print(f"    Confidence : [{conf_bar}] {r.confidence:.0%}")
-            print(f"    Faayda     : {r.benefit[:80]}...")
-            print(f"    Apply karen: {r.application_url}")
+            cfg = STATUS_CONFIG[r.status]
+            badge = f"{cfg['color']}{BOLD} {cfg['label']} {RESET}"
+            print(f"  {cfg['color']}{BOLD}┌{'─'*58}┐{RESET}")
+            print(f"  {cfg['color']}{BOLD}│{RESET}  {BOLD}{r.scheme_name[:52]:<52}{cfg['color']}{BOLD}│{RESET}")
+            print(f"  {cfg['color']}{BOLD}└{'─'*58}┘{RESET}")
+            print(f"    {DIM}Confidence{RESET}  {_conf_bar(r.confidence)}")
+            benefit_lines = textwrap.wrap(r.benefit, width=56)
+            print(f"    {DIM}Faayda{RESET}      {benefit_lines[0]}")
+            for bl in benefit_lines[1:]:
+                print(f"                {bl}")
+            print(f"    {DIM}Apply karen{RESET} {CYAN}{r.application_url}{RESET}")
             if r.warnings:
                 for w in r.warnings[:2]:
-                    ambig_id = re.search(r"AMBIGUITY-\d+", w)
-                    print(_c(f"    ⚠  {w[w.find(']')+2:]}", "yellow"))
+                    msg = w[w.find(']')+2:] if ']' in w else w
+                    print(f"    {YELLOW}⚠  {msg[:70]}{RESET}")
+            print()
 
-    # Almost eligible
+    # ── Almost eligible ───────────────────────────────────────────────────────
     if almost:
-        print(_c("\n  ◌ LAGBHAG ELIGIBLE — ek cheez ki zaroorat hai:", "yellow"))
+        print(f"  {YELLOW}{BOLD}◎  EK KADAM DUR — 1 Gap Baaki{RESET}\n")
         for r in almost:
-            print(f"\n  ◌ {r.scheme_name}")
-            print(f"    Faayda : {r.benefit[:80]}...")
-            # Show gap
-            import json as _json
+            print(f"  {YELLOW}┌{'─'*58}┐{RESET}")
+            print(f"  {YELLOW}│{RESET}  {BOLD}{r.scheme_name[:52]:<52}{YELLOW}│{RESET}")
+            print(f"  {YELLOW}└{'─'*58}┘{RESET}")
+            print(f"    {DIM}Faayda{RESET}  {r.benefit[:70]}")
             scheme_path = os.path.join(DATA_DIR, "schemes", f"{r.scheme_id}.json")
             if os.path.exists(scheme_path):
                 with open(scheme_path) as f:
-                    scheme_data = _json.load(f)
-                gaps = analyze_gaps(scheme_data, profile)
-                for g in gaps[:2]:
-                    print(_c(f"    Gap   : {g.rule_description}", "yellow"))
-                    print(f"    Karna : {g.action_hint}")
+                    sd = _json.load(f)
+                gaps = analyze_gaps(sd, profile)
+                for g in gaps[:1]:
+                    print(f"    {YELLOW}Gap  {RESET}  {g.rule_description}")
+                    print(f"    {CYAN}Karo {RESET}  {g.action_hint}")
+            print()
 
-    # Uncertain
+    # ── Uncertain ─────────────────────────────────────────────────────────────
     if uncertain:
-        print(_c("\n  ? UNCERTAIN — aur jaankari dene par pata chalega:", "cyan"))
+        print(f"  {DIM}◌  UNCERTAIN — Pata Nahi (aur jaankari se confirm ho sakta hai){RESET}\n")
         for r in uncertain:
-            missing_str = ", ".join(r.missing_fields[:3]) if r.missing_fields else "kuch fields"
-            print(f"  ? {r.scheme_name} — [{missing_str}] bata den to confirm ho sakta hai")
+            print(f"  {DIM}  • {r.scheme_name}{RESET}")
+        print()
 
-    # Summary line
-    print("\n" + "═" * 62)
-    summary_hi = (
-        f"  {len(eligible)} yojana confirm | "
-        f"{len(almost)} mein ek gap | "
-        f"{len(uncertain)} ke liye aur jaankari chahiye | "
-        f"{len(ineligible)} ke liye eligible nahi"
-    )
-    print(summary_hi)
-    print("═" * 62)
+    # ── Summary pill row ──────────────────────────────────────────────────────
+    print(f"  {'─'*64}")
+    pills = [
+        (len(eligible),   GREEN,  "Eligible"),
+        (len(almost),     YELLOW, "1 Gap"),
+        (len(uncertain),  DIM,    "Uncertain"),
+        (len(ineligible), RED,    "Nahi"),
+    ]
+    row = "  "
+    for count, col, label in pills:
+        row += f"{col}{BOLD} {count} {label} {RESET}  "
+    print(row)
+    print(f"  {'─'*64}\n")
 
 
 def _render_documents_hinglish(checklist) -> None:
@@ -211,16 +324,19 @@ def _render_documents_hinglish(checklist) -> None:
     if not checklist:
         return
 
-    print("\n" + "═" * 62)
-    print(_c("  DOCUMENTS KI LIST (pehle yeh taiyaar karen)", "bold"))
-    print("═" * 62)
-    print("  [*] = Zaroor chahiye  [ ] = Optional\n")
+    _section("DOCUMENTS KI LIST  ·  Pehle Yeh Taiyaar Karen", CYAN)
+    print(f"  {GREEN}[✦]{RESET} = Zaroor chahiye   {DIM}[ ]{RESET} = Optional\n")
 
     for i, doc in enumerate(checklist, 1):
-        mark = "[*]" if doc.mandatory else "[ ]"
-        universal = " ← sabke liye zaroor" if doc.universal else ""
-        print(f"  {i:2}. {mark} {doc.document}{_c(universal, 'dim')}")
-        print(f"       Kahan milega: {doc.obtainable_from}")
+        if doc.mandatory:
+            mark  = f"{GREEN}[✦]{RESET}"
+            dname = f"{BOLD}{doc.document}{RESET}"
+        else:
+            mark  = f"{DIM}[ ]{RESET}"
+            dname = f"{DIM}{doc.document}{RESET}"
+        universal = f"  {CYAN}← sabke liye{RESET}" if doc.universal else ""
+        print(f"  {i:2}. {mark} {dname}{universal}")
+        print(f"       {DIM}Kahan milega:{RESET} {doc.obtainable_from}")
     print()
 
 
@@ -229,20 +345,21 @@ def _render_sequence_hinglish(steps) -> None:
     if not steps:
         return
 
-    print("═" * 62)
-    print(_c("  APPLY KARNE KA ORDER (yeh sequence follow karen)", "bold"))
-    print("═" * 62)
-    print()
+    _section("APPLY KARNE KA ORDER  ·  Is Sequence Mein Karein", MAGENTA)
 
     for step in steps:
-        prereq_note = _c(" [PEHLE YAHAN JANA ZAROORI HAI]", "yellow") if step.is_prerequisite else ""
-        print(f"  STEP {step.step_number}: {_c(step.scheme_name, 'bold')}{prereq_note}")
-        print(f"    Kyun pehle   : {step.reason}")
-        print(f"    Kitna time   : {step.estimated_time}")
+        is_prereq = step.is_prerequisite
+        num_color = YELLOW if is_prereq else CYAN
+        prereq_badge = f"  {YELLOW}{BOLD}[PEHLE YAHAN JAROOR JAIYE]{RESET}" if is_prereq else ""
+        print(f"  {num_color}{BOLD}STEP {step.step_number}{RESET}{prereq_badge}")
+        print(f"  {BOLD}{step.scheme_name}{RESET}")
+        print(f"  {DIM}{'─' * 48}{RESET}")
+        print(f"  {DIM}Kyun pehle  :{RESET} {step.reason}")
+        print(f"  {DIM}Time lagega :{RESET} {step.estimated_time}")
         if step.application_url:
-            print(f"    Apply karen  : {step.application_url}")
+            print(f"  {DIM}Apply karen :{RESET} {CYAN}{step.application_url}{RESET}")
         if step.notes:
-            print(_c(f"    Note         : {step.notes}", "dim"))
+            print(f"  {DIM}Note        : {step.notes}{RESET}")
         print()
 
 
@@ -251,33 +368,50 @@ def _render_sequence_hinglish(steps) -> None:
 def _extract_and_merge(user_input: str, profile: dict, log: SessionLog, api_key: str) -> dict:
     """Extract fields from user input, merge into profile, return new fields added."""
     log.add("user", user_input)
-    extracted = extract_fields_from_text(
-        user_text=user_input,
-        conversation_history=log.get_history(),
-        api_key=api_key,
-    )
-    if "_extraction_error" in extracted:
-        err = extracted.pop("_extraction_error")
-        _speak(
-            f"[Demo mode] Field extraction via API not available: {err}\n"
-            "Using basic pattern matching instead.",
-            color="yellow"
+    with Spinner("Samajh raha hoon"):
+        extracted = extract_fields_from_text(
+            user_text=user_input,
+            conversation_history=log.get_history(),
+            api_key=api_key,
         )
+    if "_extraction_error" in extracted:
+        extracted.pop("_extraction_error")
+        # Silent fallback — demo mode already used, no need to alarm user
     new_fields = {k: v for k, v in extracted.items() if v is not None and not k.startswith("_")}
     profile.update(new_fields)
     log.add("assistant", f"Extracted: {new_fields}", extracted=new_fields)
+
+    # Show a friendly confirmation of what was understood
+    if new_fields:
+        understood = []
+        labels = {
+            "age": "umar", "gender": "gender", "state": "state",
+            "occupation": "kaam", "residence_type": "rehne ki jagah",
+            "annual_income_household": "income", "ration_card_type": "ration card",
+            "land_ownership": "zameen", "has_bank_account": "bank account",
+            "caste_category": "category", "family_size": "parivaar",
+            "is_pregnant": "pregnancy", "marital_status": "vaivahik sthiti",
+            "house_type": "ghar ka type", "disability": "viklangta",
+        }
+        for k, v in list(new_fields.items())[:6]:
+            lbl = labels.get(k, k.replace("_", " "))
+            understood.append(f"{DIM}{lbl}:{RESET} {CYAN}{v}{RESET}")
+        print(f"  {GREEN}✓{RESET}  Samjha — {',  '.join(understood)}")
+        print()
+
     return new_fields
 
 
 def _ask_one_question(q, profile: dict, log: SessionLog, api_key: str) -> None:
     """Print one follow-up question, collect answer, merge into profile."""
-    _print_divider()
-    print(f"\n  {_c('?', 'cyan')} {q.text_hinglish}")
+    _print_divider(label="Ek sawaal")
+    print(f"  {CYAN}{BOLD}◈{RESET}  {BOLD}{q.text_hinglish}{RESET}")
     if q.expected_type == "choice" and q.choices:
-        for j, c in enumerate(q.choices, ord('a')):
-            print(f"     {chr(j)}) {c}")
+        print()
+        for j, choice in enumerate(q.choices, ord('a')):
+            print(f"     {CYAN}{chr(j)}{RESET})  {choice}")
     print()
-    answer = _ask("Aapka jawab")
+    answer = _ask("Aapka jawab", hint="(kuch bhi likh sakte hain — option letter ya apni baat)")
     if answer:
         _extract_and_merge(answer, profile, log, api_key)
 
@@ -292,38 +426,40 @@ def run_conversation(
 
     _print_banner()
 
-    _speak(
-        "Namaskar! Main aapki sarkari yojanaon mein help kar sakta hoon.\n"
-        "Apni situation ek baar mein bata dijiye — jitna pata ho:\n"
-        "umar, kaam, kahan rehte hain, income, zameen, bank account, ration card.\n"
-        "Baad mein jo missing hoga, woh alag se poochunga.",
-        color="cyan"
+    # Typewriter greeting
+    greeting = (
+        f"  {CYAN}◈{RESET}  {BOLD}Namaskar! Main Yojna.ai hoon.{RESET}\n\n"
+        f"  {DIM}Main aapki sarkari yojanaon mein help karta hoon —\n"
+        f"  kaunsi schemes ke liye aap eligible hain, kya documents\n"
+        f"  chahiye, aur kahan apply karna hai.\n\n"
+        f"  {CYAN}Apni situation ek baar mein bata dijiye:{RESET}\n"
+        f"  {DIM}umar, kaam, kahan rehte hain, income, zameen,\n"
+        f"  bank account, ration card — jo bhi pata ho.{RESET}\n"
     )
+    print(greeting)
 
     profile: dict = {"nationality": "indian"}
     log = SessionLog()
-    asked_fields: set[str] = set()   # track which fields we've already asked about
+    asked_fields: set[str] = set()
 
     # ── Step 1: Get initial free-form input ────────────────────────────────────
 
-    user_input = _ask("Aap batao (jitna pata ho likhein)...")
-    if not user_input:
-        _speak("Kuch nahi bataya. Phir try karein.", color="yellow")
+    user_input = _ask(
+        "Apni baat kaho",
+        hint="Hindi, English, ya Hinglish — jo comfortable lage"
+    )
+    if not user_input or user_input.lower() in ("quit", "exit", "bye", "alvida"):
+        print(f"\n  {YELLOW}Alvida! Phir milenge.{RESET}\n")
         return
 
-    if user_input.lower() in ("quit", "exit", "bye", "alvida"):
-        _speak("Alvida!")
-        return
-
-    _speak("Samajh raha hoon...", color="dim")
     _extract_and_merge(user_input, profile, log, api_key)
 
     # ── Step 2: Resolve contradictions if any ─────────────────────────────────
 
     contradictions = detect_contradictions(profile)
     for c in contradictions:
-        _print_divider()
-        print(format_contradiction_for_cli(c))
+        _print_divider(label="Ek clarification chahiye")
+        print(f"  {YELLOW}⚠{RESET}  {format_contradiction_for_cli(c)}")
         print()
         clarify = _ask("Yeh clarify karen")
         if clarify:
@@ -334,57 +470,44 @@ def run_conversation(
     import json as _json
 
     while True:
-        # Run a quick match to see what's still uncertain
-        if has_minimum_profile(profile):
-            match_results = match_profile(profile, DATA_DIR)
-            uncertain_ids = [r.scheme_id for r in match_results if r.status == "UNCERTAIN"]
-            almost_ids    = [r.scheme_id for r in match_results if r.status == "ALMOST_ELIGIBLE"]
-            priority_ids  = uncertain_ids + almost_ids
-        else:
-            priority_ids = None
-
-        # Get next most-impactful unanswered question, skip already asked
+        # Get next highest-impact unanswered question (no mid-loop match — faster)
         next_qs = get_next_questions(
             profile=profile,
-            max_questions=10,   # get a bigger pool so we can skip already-asked ones
-            potentially_eligible_schemes=priority_ids,
+            max_questions=10,
+            potentially_eligible_schemes=None,
         )
-        # Filter out fields we've already explicitly asked about this session
         next_qs = [q for q in next_qs if q.field not in asked_fields]
 
-        if not next_qs:
-            break   # Nothing left to ask
+        if not next_qs or has_good_profile(profile):
+            break
+
+        # Show progress bar only when there are still questions to ask
+        pct = profile_completeness_pct(profile)
+        print(_progress_bar(pct, f"Profile {pct}% complete — thoda aur batao"))
+        print()
 
         # Ask the single highest-impact question
         q = next_qs[0]
         asked_fields.add(q.field)
         _ask_one_question(q, profile, log, api_key)
 
-        # Check if profile is now good enough to stop asking
-        if has_good_profile(profile):
-            break
-
     # ── Step 4: Final match run ────────────────────────────────────────────────
 
     if not has_minimum_profile(profile):
-        _speak(
-            "Enough jaankari nahi mili match karne ke liye.\n"
-            "Apne nearest Common Service Centre ya Jan Seva Kendra par jaiye.",
-            color="yellow"
-        )
+        print(f"\n  {YELLOW}⚠  Enough jaankari nahi mili.{RESET}")
+        print(f"  {DIM}Apne nearest Common Service Centre ya Jan Seva Kendra par jaiye.{RESET}\n")
         return
 
-    _speak("Sab jaankari mil gayi — results nikaal raha hoon...", color="dim")
-    match_results = match_profile(profile, DATA_DIR)
-
-    # Add gap analysis to ALMOST_ELIGIBLE results
-    for r in match_results:
-        if r.status == "ALMOST_ELIGIBLE":
-            scheme_path = os.path.join(DATA_DIR, "schemes", f"{r.scheme_id}.json")
-            if os.path.exists(scheme_path):
-                with open(scheme_path) as f:
-                    sd = _json.load(f)
-                r.gap_analysis = analyze_gaps(sd, profile)
+    print()
+    with Spinner("Aapke liye 18 schemes check kar raha hoon"):
+        match_results = match_profile(profile, DATA_DIR)
+        for r in match_results:
+            if r.status == "ALMOST_ELIGIBLE":
+                scheme_path = os.path.join(DATA_DIR, "schemes", f"{r.scheme_id}.json")
+                if os.path.exists(scheme_path):
+                    with open(scheme_path) as f:
+                        sd = _json.load(f)
+                    r.gap_analysis = analyze_gaps(sd, profile)
 
     # ── Step 5: Show everything once ──────────────────────────────────────────
 
@@ -402,19 +525,23 @@ def run_conversation(
         seq = build_application_sequence(eligible_ids, match_results, DATA_DIR)
         _render_sequence_hinglish(seq)
 
-    _print_divider()
-    _speak(
-        "ZAROOR YAAD RAKHEN:\n"
-        "Yeh system ek guide hai — final eligibility government verify karegi.\n"
-        "Agar koi scheme UNCERTAIN dikhi hai, apne nearest:\n"
-        "  • Common Service Centre (CSC)\n"
-        "  • Jan Seva Kendra\n"
-        "  • Block Development Office (BDO)\n"
-        "par jakar verify karein.\n\n"
-        "Yeh system kabhi bhi galat confident answer nahi deta — "
-        "jab pata nahi, toh clearly kehta hai 'UNCERTAIN'.",
-        color="dim"
-    )
+    # ── Disclaimer ────────────────────────────────────────────────────────────
+
+    print(f"  {DIM}{'═' * 64}{RESET}")
+    print(f"  {CYAN}{BOLD}  ◈  ZAROOR YAAD RAKHEN{RESET}")
+    print(f"  {DIM}{'═' * 64}{RESET}\n")
+    notes = [
+        "Yeh system ek guide hai — final eligibility government verify karegi.",
+        "UNCERTAIN results ke liye in jagahon par jaiye:",
+        "  •  Common Service Centre (CSC)  •  Jan Seva Kendra",
+        "  •  Block Development Office (BDO)",
+        "",
+        "Yojna.ai kabhi bhi galat confident answer nahi deta.",
+        "Jab pata nahi — clearly kehta hai UNCERTAIN.",
+    ]
+    for note in notes:
+        print(f"  {DIM}{note}{RESET}")
+    print(f"\n  {DIM}Powered by Yojna.ai  ·  APJ Abdul Kalam Hackathon{RESET}\n")
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
